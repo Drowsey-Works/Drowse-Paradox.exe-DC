@@ -314,7 +314,7 @@ const characters = [
     },
     {
         name: 'Drowsey',
-        img: 'imgs/DrowseyUpd.png',
+        img: 'https://github.com/Drowsey-Works/Drowse-Paradox.exe-DC/blob/main/imgs/Drowsey%20New%20Render.webp?raw=true',
         placement: 'char',
         description: 'A kindly made robot who lives off of remembering the good times and staying positive. Using his music, he helps others avoid exhaustion and keep moving forward.',
         stats: {
