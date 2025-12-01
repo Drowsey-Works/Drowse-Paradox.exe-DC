@@ -329,7 +329,7 @@ const characters = [
     },
     {
         name: 'Deivy',
-        img: 'imgs/DeivyRenderV2.webp',
+        img: 'https://github.com/Drowsey-Works/Drowse-Paradox.exe-DC/blob/main/imgs/DeivyRenderV2.webp?raw=true',
         placement: 'char',
         description: 'A player of World Tower Defense, his multi-stage abilities help himself and survivors.',
         stats: {
