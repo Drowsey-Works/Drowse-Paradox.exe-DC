@@ -1,38 +1,35 @@
 <html lang="en">
 <head>
- <meta charset="UTF-8" />
- <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
- <title>Drowse's Survival Character List</title>
- <link rel="icon" type="image/jpeg" href="https://github.com/Drowsey-Works/Drowse-Paradox.exe-DC/blob/main/imgs/CreamLogo.jpg?raw=true">
- <link rel="stylesheet" href="styles.css">
- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Drowse's Survival Character List</title>
+  <link rel="icon" type="image/jpeg" href="https://github.com/Drowsey-Works/Drowse-Paradox.exe-DC/blob/main/imgs/CreamLogo.jpg?raw=true">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
 
+  <header class="navbar">
+    <div class="searchbar">
+      <input placeholder="Search..." id="searchInp">
+      <div id="searchBtn" class="fas fa-search"></div>
+    </div>
+    <div class="navItems fas fa-bars" id="navItemBtn"></div>
+  </header>
 
- <header class="navbar">
-   <div class="searchbar">
-     <input placeholder="Search..." id="searchInp">
-     <div id="searchBtn" class="fas fa-search"></div>
-   </div>
-   <div class="navItems fas fa-bars" id="navItemBtn"></div>
- </header>
-
-
- <main>
-   <div id="results" class="results"></div>
-  
- <!-- Hidden detail panel -->
- <div id="viewPanel" class="view-panel">
-   <div class="view-content">
-     <button id="closeView" class="close-btn fas fa-x"></button>
-     <div id="viewDetails"></div>
-   </div>
- </div>
- </main>
- <script src="character-data.js"></script>
- <script src="ability-data.js"></script>
- <script src="display-characters.js"></script>
+  <main>
+    <div id="results" class="results"></div>
+    
+  <!-- Hidden detail panel -->
+  <div id="viewPanel" class="view-panel">
+    <div class="view-content">
+      <button id="closeView" class="close-btn fas fa-x"></button>
+      <div id="viewDetails"></div>
+    </div>
+  </div>
+  </main>
+  <script src="character-data.js"></script>
+  <script src="ability-data.js"></script>
+  <script src="display-characters.js"></script>
 </body>
 </html>
-
