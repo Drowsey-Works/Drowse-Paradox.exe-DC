@@ -1,14 +1,18 @@
 const characters = [
-    // Survivors
+    // === SURVIVORS ===
     {
         name: 'NlSickle',
         img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Nlsickle.svg',
-        placement: 'char'
+        placement: 'char',
+        description: 'A sharp, scythe-wielding survivor.',
+        stats: { "Skill Level": 6.5, "HP": 120, "Role": "Sentinel|Priority|Distractor" }
     },
     {
         name: 'NlBeary',
         img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/New%20Renders/NlBeary/Nlbeary.webp',
-        placement: 'char'
+        placement: 'char',
+        description: 'The bear survivor.',
+        stats: { "Skill Level": 4.5, "HP": 100, "Role": "Support/Mobility/Protector/Sentinel" }
     },
     {
         name: '☆ S M I L E ☆',
@@ -21,14 +25,14 @@ const characters = [
         name: 'Cosmic',
         img: 'https://via.placeholder.com/300x400/333/fff?text=Cosmic',
         placement: 'char',
-        description: 'Cosmic the Hedgehog. A support/sentinel with mobility and priority, using a shotgun and extreme speed to protect others.',
+        description: 'The Hedgehog. A support/sentinel with mobility and priority, using a shotgun and extreme speed to protect others.',
         stats: { "Skill Level": 8, "HP": 125, "Role": "Support/Sentinel/Mobility/Priority" }
     },
     {
         name: 'Celeste',
         img: 'https://via.placeholder.com/300x400/333/fff?text=Celeste',
         placement: 'char',
-        description: 'Adrenaline/Mobility/Priority survivor with a double jump and sanity meter.',
+        description: 'A fragile survivor with a sanity meter and a double jump.',
         stats: { "Skill Level": 5, "HP": 90, "Role": "Support/Adrenaline/Mobility/Priority" }
     },
     {
@@ -48,7 +52,8 @@ const characters = [
     {
         name: 'Cosmia//Leah',
         img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Cosmia-Leah.svg',
-        placement: 'char'
+        placement: 'char',
+        description: 'A survivor.'
     },
     {
         name: 'SashaRose',
@@ -99,28 +104,33 @@ const characters = [
     {
         name: 'Wanderer Orcaz',
         img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/New%20Renders/Wanderer/Wanderer.webp',
-        placement: 'char'
+        placement: 'char',
+        description: 'The Wanderer Doll.'
     },
     {
         name: 'Hauntuh/Emoji Man',
         img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Hauntuh.svg',
-        placement: 'char'
+        placement: 'char',
+        description: 'The Emoji Man.'
     },
     {
         name: 'Drowse',
         img: 'https://github.com/Drowsey-Works/Drowse-Paradox.exe-DC/blob/main/imgs/Drowsey%20New%20Render.webp?raw=true',
         placement: 'char',
         description: 'A kindly made robot who lives off of remembering the good times and staying positive. Using his music, he helps others avoid exhaustion and keep moving forward.',
-        stats: { "Difficulty": "★★★★☆", "Health": 10, "Regular Speed": 12, "Sprinting Speed": 25, "Max Stamina": 100, "Stamina Loss per sec": 10, "Stamina Gain per sec": 20 }    
+        stats: {
+            "Difficulty": "★★★★☆", "Health": 10, "Regular Speed": 12, "Sprinting Speed": 25,
+            "Max Stamina": 100, "Stamina Loss per sec": 10, "Stamina Gain per sec": 20
+        }
     },
-    
-    // Tormentors
+
+    // === TORMENTORS ===
     {
         name: '2020x The Jester',
         img: 'https://via.placeholder.com/300x400/333/fff?text=2020x+Jester',
         placement: 'char',
         description: 'A sadistic Tormentor with a saw and a twisted sense of fun.',
-        stats: { "Skill Level": 6, "HP": 115, "Role": "Not So Magic Trick, Nothing, Slate Armor, Invisi Cloak, Glider, Battle Ready" }
+        stats: { "Skill Level": 6, "HP": 115, "Role": "Tormentor" }
     },
     {
         name: 'Smoky The Demon',
