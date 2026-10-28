@@ -893,3 +893,127 @@
         height: 35px;
     }
 }
+
+/* Make sure these are in your styles.css to support the skins! */
+.skins-toggle-btn {
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid white;
+    border-radius: 8px;
+    color: white;
+    padding: 10px 16px;
+    margin-top: 15px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 200px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.skins-toggle-btn:hover {
+    background: white;
+    color: black;
+    transform: translateY(-2px);
+}
+
+.skins-toggle-btn:active {
+    transform: translateY(0);
+}
+
+.skins-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    transform: translateY(10px) scale(0.95);
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    min-width: 300px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.skins-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(10px) scale(1);
+}
+
+.skins-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 15px;
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 5px;
+    margin: -5px;
+    overflow-y: overlay;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.1);
+}
+
+.skin-item {
+    position: relative;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    aspect-ratio: 1;
+}
+
+.skin-item:hover {
+    border-color: white;
+    transform: scale(1.05);
+}
+
+.skin-item.selected {
+    border-color: #4CAF50;
+    box-shadow: 0 0 15px #4CAF50;
+}
+
+.skin-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.skin-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.skin-item:hover .skin-overlay {
+    opacity: 1;
+}
+
+.skin-name {
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    padding: 5px;
+    font-size: 12px;
+    text-shadow: 1px 1px 2px black;
+}
+
+.character-image {
+    position: relative;
+}
