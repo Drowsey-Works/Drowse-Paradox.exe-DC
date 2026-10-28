@@ -16,13 +16,20 @@ const tormentors = characters.filter(c =>
 );
 
 let chosenSide = null;
-let currentList = [];
+let switchCount = 0; // Tracks how many times they switch sides
+
+// The Archivist's judgemental lines for switching
+const switchLines = [
+    "Ah, got a bit turned around?",
+    "Hm, bit indecisive aren't you?",
+    "Came to view another perspective?",
+    "A bit bipolar, ain't we?"
+];
 
 // ============================================================
 // NAME INDEX GRID
 // ============================================================
 function renderNameIndex(list) {
-    currentList = list;
     indexGrid.innerHTML = '';
     indexCounter.textContent = `${list.length} ENTR${list.length === 1 ? 'Y' : 'IES'}`;
 
@@ -39,21 +46,36 @@ function renderNameIndex(list) {
 }
 
 function selectName(char) {
-    // Hide the index
     indexCard.classList.remove('visible');
     folderSlot.classList.add('visible');
-    chosenFolder.classList.remove('selected', 'flipped');
+    chosenFolder.classList.remove('flipped');
 
-    // Populate folder with chosen character
     chosenFolderName.textContent = char.name;
     chosenFolder.querySelector('.folder-tab').textContent = char.name.substring(0, 4).toUpperCase();
 
-    // Reset folder click state
+    // The click sequence for the folder
     chosenFolder.onclick = () => {
         if (!chosenFolder.classList.contains('flipped')) {
+            // 1. Flip the cover open
             chosenFolder.classList.add('flipped');
-            // After flip animation, open the file panel
-            setTimeout(() => openFile(char), 500);
+            
+            // 2. Wait for flip, then zoom in
+            setTimeout(() => {
+                chosenFolder.classList.add('zooming');
+                
+                // 3. Fade to black
+                document.querySelector('.desk-vignette').classList.add('fade-black');
+                
+                // 4. Show the document after the screen is dark
+                setTimeout(() => {
+                    openFile(char);
+                    // Reset UI so if they close the file, they return to the desk
+                    chosenFolder.classList.remove('flipped', 'zooming');
+                    document.querySelector('.desk-vignette').classList.remove('fade-black');
+                    folderSlot.classList.remove('visible');
+                    indexCard.classList.add('visible');
+                }, 1000); // 1s for the dark transition
+            }, 600); // 0.6s for the 3D flip
         }
     };
 }
@@ -64,7 +86,47 @@ backToIndex.addEventListener('click', () => {
 });
 
 // ============================================================
-// FILE DISPLAY (same as before)
+// SIDE SWITCHING (The "Switch Side" Button)
+// ============================================================
+function showSwitchButton() {
+    const switchBtn = document.createElement('button');
+    switchBtn.className = 'switch-side-btn';
+    switchBtn.innerHTML = `<i class="fas fa-sync-alt"></i> SWITCH SIDE`;
+    
+    // Add it to the index card header
+    const header = document.querySelector('.index-header');
+    if (!document.querySelector('.switch-side-btn')) {
+        header.appendChild(switchBtn);
+    }
+
+    switchBtn.onclick = () => {
+        indexCard.classList.remove('visible');
+        dialogue.start([
+            {
+                text: switchLines[switchCount % switchLines.length],
+                effect: 'normal'
+            },
+            {
+                text: "Alright, then... who else are you looking for?",
+                effect: 'normal',
+                choices: [
+                    { label: 'SURVIVORS', onSelect: () => { chosenSide = 'survivors'; } },
+                    { label: 'TORMENTORS', onSelect: () => { chosenSide = 'tormentors'; } }
+                ]
+            }
+        ], () => {
+            switchCount++;
+            if (chosenSide === 'survivors') {
+                renderNameIndex(survivors);
+            } else {
+                renderNameIndex(tormentors);
+            }
+        });
+    };
+}
+
+// ============================================================
+// FILE DISPLAY
 // ============================================================
 function openFile(char) {
     let abilitiesHTML = '';
@@ -161,17 +223,21 @@ function openFile(char) {
 
 document.getElementById('closeView').addEventListener('click', () => {
     filePanel.classList.remove('active');
-    // Reset folder flip so user can reopen
+    // Ensure index is visible when closing file
     setTimeout(() => {
-        chosenFolder.classList.remove('flipped');
-    }, 400);
+        indexCard.classList.add('visible');
+        showSwitchButton(); // Ensure button is there
+    }, 300);
 });
 
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
         if (filePanel.classList.contains('active')) {
             filePanel.classList.remove('active');
-            setTimeout(() => chosenFolder.classList.remove('flipped'), 400);
+            setTimeout(() => {
+                indexCard.classList.add('visible');
+                showSwitchButton();
+            }, 300);
         }
     }
 });
@@ -212,6 +278,7 @@ window.addEventListener('load', () => {
                         text: "Who are you looking for... which name?",
                         onShow: () => {
                             renderNameIndex(survivors);
+                            showSwitchButton();
                             setTimeout(() => {
                                 document.getElementById('dialogueOverlay').classList.remove('active');
                             }, 1600);
@@ -231,6 +298,7 @@ window.addEventListener('load', () => {
                         text: "Who are you looking for... which name?",
                         onShow: () => {
                             renderNameIndex(tormentors);
+                            showSwitchButton();
                             setTimeout(() => {
                                 document.getElementById('dialogueOverlay').classList.remove('active');
                             }, 1600);
