@@ -4,12 +4,10 @@ const characters = [
         name: 'Forsaken',
         placement: 'contentSeparator'
     },
-
     {
         name: 'Survivors',
         placement: 'charSeparator'
     },
-
     {
         name: 'Veronica',
         img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Veronica.webp',
@@ -25,8 +23,6 @@ const characters = [
             "Stamina Gain per sec": 20
         }
     },
-
-
     {
         name: 'Noob',
         img: 'https://preview.redd.it/noob-render-d-v0-03sszvgxlzcf1.png?width=320&crop=smart&auto=webp&s=e8694b551f2b50dd503421fe2457e4102f2d3b4b',
@@ -183,13 +179,11 @@ const characters = [
         placement: 'charSeparator'
     },
 
-
     // Killers
     {
         name: 'Noli',
         img: 'https://preview.redd.it/how-we-feeling-about-the-noli-redesign-v0-xau8s0wzwa3f1.jpg?width=640&crop=smart&auto=webp&s=b2a2462ef64db253a693c9e97def1a55464c03cf',
         placement: 'char'
-
     },
     {
         name: 'Guest 666',
@@ -198,7 +192,6 @@ const characters = [
         description: 'Cursed with their name from the moment of their existence, he managed to find solace in Noob. Someone who saw them for they were inside, but that ideal reality would not last. Guest 666 will viciously rip and tear through any obstacle in her way, feasting on the bloodshed and carnage to empower his abilities.',
         stats: {
             "Difficulty": "★★★☆☆",
-
             "Health": 2500,
             "Regular Speed": 8,
             "Sprinting Speed": 27,
@@ -212,29 +205,25 @@ const characters = [
         name: 'John Doe',
         img: 'https://preview.redd.it/has-anyone-noticed-that-there-is-a-new-model-in-the-new-v0-mg6mfsz1rt6f1.png?width=439&format=png&auto=webp&s=ab8ed2adcc2ad115ecf23f5e274777829a80e3e8',
         placement: 'char'
-
     },
     {
         name: 'Jason',
         img: 'https://preview.redd.it/jason-is-totally-glitched-right-now-and-has-a-new-render-v0-yt98rmbmft6f1.png?width=2000&format=png&auto=webp&s=6831aaacde491c06ea2a5c4b59ec5fb05e35a919',
         placement: 'char'
-
     },
     {
         name: 'C00lkidd',
         img: 'https://preview.redd.it/c00lkidd-render-remake-v0-xx42scrn696f1.png?width=512&format=png&auto=webp&s=57dd8397886a4bb2b285fe6dac093231c26b932d',
         placement: 'char'
-
     },
     {
         name: '1x1x1x1',
         img: 'https://i.redd.it/is-betrayed-1x1x1x1-male-or-female-v0-vpjkoc3333re1.png?width=417&format=png&auto=webp&s=a3438babad01abf6c135c0c1c651c44bcef273cc',
         placement: 'char'
-
     },
 
     {
-        name: 'Paradox.exe DC',
+        name: '2020x',
         placement: 'contentSeparator'
     },
 
@@ -247,7 +236,6 @@ const characters = [
         name: 'NlSickle',
         img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Nlsickle.svg',
         placement: 'char'
-
     },
     {
         name: 'NlBeary',
@@ -256,18 +244,58 @@ const characters = [
     },
     {
         name: '☆ S M I L E ☆',
-        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/☆ S M I L E ☆.svg',
-        placement: 'char'
+        img: 'https://via.placeholder.com/300x400/333/fff?text=SM+Image',
+        placement: 'char',
+        description: 'A sentinel/support/tank who uses heavy hits and shockwaves to keep Tormentors away.',
+        stats: {
+            "Skill Level": 6,
+            "HP": 120,
+            "Role": "Sentinel/Support/Tank"
+        }
     },
     {
-        name: 'Cosmic Xin Error',
-        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Cosmic.svg',
-        placement: 'char'
+        name: 'Cosmic',
+        img: 'https://via.placeholder.com/300x400/333/fff?text=Cosmic',
+        placement: 'char',
+        description: 'Cosmic the Hedgehog. A support/sentinel with mobility and priority, using a shotgun and extreme speed to protect others.',
+        stats: {
+            "Skill Level": 8,
+            "HP": 125,
+            "Role": "Support/Sentinel/Mobility/Priority"
+        }
+    },
+    {
+        name: 'Celeste',
+        img: 'https://via.placeholder.com/300x400/333/fff?text=Celeste',
+        placement: 'char',
+        description: 'Adrenaline/Mobility/Priority survivor with a double jump and sanity meter.',
+        stats: {
+            "Skill Level": 5,
+            "HP": 90,
+            "Role": "Support/Adrenaline/Mobility/Priority"
+        }
     },
     {
         name: 'Silly Goober',
         img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Silly Goober.svg',
-        placement: 'char'
+        placement: 'char',
+        description: 'A support/survivalist/distractor with force fields and bombs.',
+        stats: {
+            "Skill Level": 5,
+            "HP": 100,
+            "Role": "Support/Survivalist/Distractor"
+        }
+    },
+    {
+        name: 'Asher Dasher',
+        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Asher.svg',
+        placement: 'char',
+        description: 'A sentinel/flight/support/mobility survivor wielding a scythe.',
+        stats: {
+            "Skill Level": 6,
+            "HP": 120,
+            "Role": "Sentinel|Flight|Support|Mobility"
+        }
     },
     {
         name: 'Cosmia//Leah',
@@ -278,6 +306,12 @@ const characters = [
         name: 'SashaRose',
         img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/New%20Renders/SashaRose/SashaRose.webp',
         placement: 'char',
+        description: 'The Witch. A support survivor wielding spells and potions.',
+        stats: {
+            "Skill Level": 5,
+            "HP": 100,
+            "Role": "Support/Mobility/Adrenaline"
+        },
         skins: [
             { name: 'Pink Theme', img: 'https://github.com/Drowsey-Works/Drowse-Paradox.exe-DC/blob/main/New%20Renders/SashaRose/SashaRose(pink%20themed%20skin).webp?raw=true' },
             { name: 'Purple Theme', img: 'https://github.com/Drowsey-Works/Drowse-Paradox.exe-DC/blob/main/New%20Renders/SashaRose/SashaRose(purple,%20skin).webp?raw=true' },
@@ -285,8 +319,63 @@ const characters = [
         ]
     },
     {
-        name: 'Asher Dasher',
-        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Asher.svg',
+        name: 'Sutekina',
+        img: 'https://via.placeholder.com/300x400/333/fff?text=Sutekina',
+        placement: 'char',
+        description: 'The Cat. A support/distractor/mobility survivor.',
+        stats: {
+            "Skill Level": 4,
+            "HP": 100,
+            "Role": "Support/Distractor/Mobility"
+        }
+    },
+    {
+        name: 'Evadare/Kontos',
+        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Evadare.svg',
+        placement: 'char',
+        description: 'The Martial Artist. A survivalist/mobility/priority survivor.',
+        stats: {
+            "Skill Level": 4.5,
+            "HP": 100,
+            "Role": "Survivalist/Mobility/Priority"
+        }
+    },
+    {
+        name: '2020x (Survivor)',
+        img: 'https://via.placeholder.com/300x400/333/fff?text=2020x',
+        placement: 'char',
+        description: 'The Jester (Survivor form). A support/survivalist/mobility survivor.',
+        stats: {
+            "Skill Level": 6,
+            "HP": 115,
+            "Role": "Support/Survivalist/Mobility"
+        }
+    },
+    {
+        name: 'BreadMan',
+        img: 'https://via.placeholder.com/300x400/333/fff?text=BreadMan',
+        placement: 'char',
+        description: 'The Swords Master. A sentinel/distractor/priority survivor.',
+        stats: {
+            "Skill Level": 5,
+            "HP": 100,
+            "Role": "Sentinel/Distractor/Priority"
+        }
+    },
+    {
+        name: 'SpaceHog',
+        img: 'https://via.placeholder.com/300x400/333/fff?text=SpaceHog',
+        placement: 'char',
+        description: 'The ShapeShifter. A support/sentinel/tank/priority survivor.',
+        stats: {
+            "Skill Level": 6,
+            "HP": "100 [+50]",
+            "Role": "Support/Sentinel/Tank/Priority"
+        }
+    },
+    {
+        name: 'Wanderer Orcaz',
+        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/New%20Renders/Wanderer/Wanderer.webp',
         placement: 'char'
     },
     {
@@ -295,14 +384,98 @@ const characters = [
         placement: 'char'
     },
     {
-        name: 'Evadare/Kontos',
-        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Evadare.svg',
-        placement: 'char'
+        name: 'Drowse',
+        img: 'https://github.com/Drowsey-Works/Drowse-Paradox.exe-DC/blob/main/imgs/Drowsey%20New%20Render.webp?raw=true',
+        placement: 'char',
+        description: 'A kindly made robot who lives off of remembering the good times and staying positive. Using his music, he helps others avoid exhaustion and keep moving forward.',
+        stats: {
+            "Difficulty": "★★★★☆",
+            "Health": 10,
+            "Regular Speed": 12,
+            "Sprinting Speed": 25,
+            "Max Stamina": 100,
+            "Stamina Loss per sec": 10,
+            "Stamina Gain per sec": 20
+        }    
     },
     {
-        name: 'Wanderer Orcaz',
-        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/New%20Renders/Wanderer/Wanderer.webp',
-        placement: 'char'
+        name: 'Deivy',
+        img: 'https://github.com/Drowsey-Works/Drowse-Paradox.exe-DC/blob/main/imgs/DeivyRenderV2.webp?raw=true',
+        placement: 'char',
+        description: 'A player of World Tower Defense, his multi-stage abilities help himself and survivors.',
+        stats: {
+            "Difficulty": "★★★★☆",
+            "Health": 10,
+            "Regular Speed": 12,
+            "Sprinting Speed": 25,
+            "Max Stamina": 100,
+            "Stamina Loss per sec": 10,
+            "Stamina Gain per sec": 20
+        }    
+    },
+    {
+        name: 'Blank',
+        img: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/PlaceholderLC.png',
+        placement: 'char',
+        description: 'Just a blank character for reference.',
+        stats: {
+            "Difficulty": "★★☆☆☆",
+            "Health": 10,
+            "Regular Speed": 12,
+            "Sprinting Speed": 25,
+            "Max Stamina": 100,
+            "Stamina Loss per sec": 10,
+            "Stamina Gain per sec": 20
+        }
+    },
+    
+    {
+        name: 'Tormentors',
+        placement: 'charSeparator'
+    },
+    {
+        name: '2020x The Jester',
+        img: 'https://via.placeholder.com/300x400/333/fff?text=2020x+Jester',
+        placement: 'char',
+        description: 'A sadistic Tormentor with a saw and a twisted sense of fun.',
+        stats: {
+            "Skill Level": 6,
+            "HP": 115,
+            "Role": "Not So Magic Trick, Nothing, Slate Armor, Invisi Cloak, Glider, Battle Ready"
+        }
+    },
+    {
+        name: 'Smoky The Demon',
+        img: 'https://via.placeholder.com/300x400/333/fff?text=Smoky',
+        placement: 'char',
+        description: 'A heavy-hitting flying Tormentor.',
+        stats: {
+            "Skill Level": 8,
+            "HP": 6666,
+            "Role": "Flight/Loud/Close+Far/HeavyHits"
+        }
+    },
+    {
+        name: 'NMercy The Mutated Corpse',
+        img: 'https://via.placeholder.com/300x400/333/fff?text=NMercy',
+        placement: 'char',
+        description: 'A stealthy, slower, heavy close-range Tormentor.',
+        stats: {
+            "Skill Level": 7.5,
+            "HP": "INF",
+            "Role": "Stealthy/Heavy/Slower/CloseRange"
+        }
+    },
+    {
+        name: 'Rosetti The Spider',
+        img: 'https://via.placeholder.com/300x400/333/fff?text=Rosetti',
+        placement: 'char',
+        description: 'A slower trapper Tormentor with debuffing abilities.',
+        stats: {
+            "Skill Level": 7,
+            "HP": 7550,
+            "Role": "Slower/Trapper/Close+Far/Debuffer"
+        }
     },
     {
         name: 'Other',
