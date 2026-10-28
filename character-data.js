@@ -228,7 +228,7 @@ const characters = [
     },
 
     {
-        name: 'Survivors?',
+        name: 'Survivors',
         placement: 'charSeparator'
     },
 
@@ -398,36 +398,6 @@ const characters = [
             "Stamina Gain per sec": 20
         }    
     },
-    {
-        name: 'Deivy',
-        img: 'https://github.com/Drowsey-Works/Drowse-Paradox.exe-DC/blob/main/imgs/DeivyRenderV2.webp?raw=true',
-        placement: 'char',
-        description: 'A player of World Tower Defense, his multi-stage abilities help himself and survivors.',
-        stats: {
-            "Difficulty": "★★★★☆",
-            "Health": 10,
-            "Regular Speed": 12,
-            "Sprinting Speed": 25,
-            "Max Stamina": 100,
-            "Stamina Loss per sec": 10,
-            "Stamina Gain per sec": 20
-        }    
-    },
-    {
-        name: 'Blank',
-        img: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/PlaceholderLC.png',
-        placement: 'char',
-        description: 'Just a blank character for reference.',
-        stats: {
-            "Difficulty": "★★☆☆☆",
-            "Health": 10,
-            "Regular Speed": 12,
-            "Sprinting Speed": 25,
-            "Max Stamina": 100,
-            "Stamina Loss per sec": 10,
-            "Stamina Gain per sec": 20
-        }
-    },
     
     {
         name: 'Tormentors',
@@ -475,59 +445,6 @@ const characters = [
             "Skill Level": 7,
             "HP": 7550,
             "Role": "Slower/Trapper/Close+Far/Debuffer"
-        }
-    },
-    {
-        name: 'Other',
-        placement: 'contentSeparator'
-    },
-    {
-        name: 'Survivors',
-        placement: 'charSeparator'
-    },
-    {
-        name: 'Drowsey',
-        img: 'https://github.com/Drowsey-Works/Drowse-Paradox.exe-DC/blob/main/imgs/Drowsey%20New%20Render.webp?raw=true',
-        placement: 'char',
-        description: 'A kindly made robot who lives off of remembering the good times and staying positive. Using his music, he helps others avoid exhaustion and keep moving forward.',
-        stats: {
-            "Difficulty": "★★★★☆",
-            "Health": 10,
-            "Regular Speed": 12,
-            "Sprinting Speed": 25,
-            "Max Stamina": 100,
-            "Stamina Loss per sec": 10,
-            "Stamina Gain per sec": 20
-        }    
-    },
-    {
-        name: 'Deivy',
-        img: 'https://github.com/Drowsey-Works/Drowse-Paradox.exe-DC/blob/main/imgs/DeivyRenderV2.webp?raw=true',
-        placement: 'char',
-        description: 'A player of World Tower Defense, his multi-stage abilities help himself and survivors.',
-        stats: {
-            "Difficulty": "★★★★☆",
-            "Health": 10,
-            "Regular Speed": 12,
-            "Sprinting Speed": 25,
-            "Max Stamina": 100,
-            "Stamina Loss per sec": 10,
-            "Stamina Gain per sec": 20
-        }    
-    },
-    {
-        name: 'Blank',
-        img: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/PlaceholderLC.png',
-        placement: 'char',
-        description: 'Just a blank character for reference.',
-        stats: {
-            "Difficulty": "★★☆☆☆",
-            "Health": 10,
-            "Regular Speed": 12,
-            "Sprinting Speed": 25,
-            "Max Stamina": 100,
-            "Stamina Loss per sec": 10,
-            "Stamina Gain per sec": 20
         }
     }
 ];
