@@ -18,7 +18,7 @@ class DialogueEngine {
         this.choicesEl = document.getElementById('dialogueChoices');
 
         document.querySelector('.dialogue-box').addEventListener('click', (e) => {
-            if (e.target.closest('.dialogue-choices')) return;
+            if (e.target.closest('.dialogue-choices') || e.target.closest('.switch-side-btn')) return;
             this.advance();
         });
         document.addEventListener('keydown', (e) => {
@@ -29,7 +29,6 @@ class DialogueEngine {
         });
     }
 
-    // Normalize line.text -> array of {text, effect}
     getSegments(line) {
         if (!line) return [];
         if (typeof line.text === 'string') return [{ text: line.text, effect: line.effect || 'normal' }];
@@ -92,7 +91,7 @@ class DialogueEngine {
         const line = this.lines[this.currentLine];
         if (line.choices && line.choices.length) {
             this.awaitingChoice = true;
-            this.render(); // ensure choices render
+            this.render();
             return;
         }
 
@@ -133,7 +132,6 @@ class DialogueEngine {
         const shown = this.visibleChars();
         const segments = this.getSegments(line);
 
-        // Flatten into individual characters with effects
         let flat = [];
         segments.forEach(seg => {
             for (const ch of seg.text) flat.push({ ch, effect: seg.effect });
@@ -141,10 +139,14 @@ class DialogueEngine {
 
         const visChars = flat.slice(0, shown);
         let html = '';
+        
+        // Use a global character index across the whole line so wave/shake offsets look natural
         visChars.forEach((c, i) => {
             if (c.ch === ' ') { html += ' '; return; }
-            html += `<span class="char ${c.effect}" style="--i:${i}">${c.ch}</span>`;
+            // Adding a slight delay to the CSS animation via inline style helps force the browser to register it
+            html += `<span class="char ${c.effect}" style="--i:${i}; animation-delay:${(i * 0.05) % 2}s">${c.ch}</span>`;
         });
+        
         this.textEl.innerHTML = html;
 
         if (this.lineFullyShown() && !this.awaitingChoice) {
