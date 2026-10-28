@@ -1,46 +1,44 @@
-
 const searchBtn = document.getElementById('searchBtn');
-        const searchInp = document.getElementById('searchInp');
-        const results = document.getElementById('results');
+const searchInp = document.getElementById('searchInp');
+const results = document.getElementById('results');
 
-        function displayResults(list) {
-            results.innerHTML = '';
-            list.forEach(c => {
-                if (c.placement === 'contentSeparator') {
-                    const sep = document.createElement('div');
-                    sep.className = 'content-separator';
-                    sep.textContent = c.name;
-                    results.appendChild(sep);
-                } else if (c.placement === 'charSeparator') {
-                    const sep = document.createElement('div');
-                    sep.className = 'category-separator';
-                    sep.textContent = c.name;
-                    results.appendChild(sep);
-                } else if (c.placement === 'char') {
-                    const div = document.createElement('div');
-                    div.className = 'result-item';
-                    div.innerHTML = `
-        <img src="${c.img}" alt="${c.name}">
-        <span>${c.name}</span>
-        <button class="view-btn" data-name="${c.name}">View</button>
-      `;
-                    results.appendChild(div);
-                }
-            });
-
-            // Add event listeners to the newly created view buttons
-            document.querySelectorAll('.view-btn').forEach(btn => {
-                btn.addEventListener('click', e => {
-                    const name = e.target.getAttribute('data-name');
-                    const char = characters.find(c => c.name === name);
-                    if (char) {
-                        showCharacterStats(char);
-                    }
-                });
-            });
+function displayResults(list) {
+    results.innerHTML = '';
+    list.forEach(c => {
+        if (c.placement === 'contentSeparator') {
+            const sep = document.createElement('div');
+            sep.className = 'content-separator';
+            sep.textContent = c.name;
+            results.appendChild(sep);
+        } else if (c.placement === 'charSeparator') {
+            const sep = document.createElement('div');
+            sep.className = 'category-separator';
+            sep.textContent = c.name;
+            results.appendChild(sep);
+        } else if (c.placement === 'char') {
+            const div = document.createElement('div');
+            div.className = 'result-item';
+            div.innerHTML = `
+                <img src="${c.img}" alt="${c.name}">
+                <span>${c.name}</span>
+                <button class="view-btn" data-name="${c.name}">View</button>
+            `;
+            results.appendChild(div);
         }
+    });
 
-        // MOVE THIS FUNCTION OUTSIDE displayResults
+    // Add event listeners to the newly created view buttons
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const name = e.target.getAttribute('data-name');
+            const char = characters.find(c => c.name === name);
+            if (char) {
+                showCharacterStats(char);
+            }
+        });
+    });
+}
+
 function showCharacterStats(char) {
     results.classList.add('fade-out');
 
@@ -117,6 +115,19 @@ function showCharacterStats(char) {
             <div class="character-content">
                 <div class="character-image">
                     <img src="${char.img}" alt="${char.name}" onerror="this.src='https://via.placeholder.com/300x400/333/fff?text=Image+Not+Found'">
+                    ${char.skins ? `<button class="skins-toggle-btn" id="skinsBtn">View Skins (${char.skins.length})</button>
+                    <div class="skins-menu" id="skinsMenu">
+                        <div class="skins-grid">
+                            ${char.skins.map(skin => `
+                                <div class="skin-item" data-img="${skin.img}">
+                                    <img src="${skin.img}" alt="${skin.name}">
+                                    <div class="skin-overlay">
+                                        <span class="skin-name">${skin.name}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>` : ''}
                 </div>
                 
                 <div class="character-stats">
@@ -126,13 +137,17 @@ function showCharacterStats(char) {
 
         // Add stats in the exact order you want
         const statOrder = [
+            "Skill Level",
             "Difficulty",
             "Health",
+            "HP",
+            "Role",
             "Regular Speed", 
             "Sprinting Speed",
             "Max Stamina",
             "Stamina Loss per sec",
-            "Stamina Gain per sec"
+            "Stamina Gain per sec",
+            "Terror Radius"
         ];
 
         statOrder.forEach(stat => {
@@ -153,7 +168,7 @@ function showCharacterStats(char) {
             
             <div class="character-description">
                 <h3>GENERAL INFO</h3>
-                <p>${char.description}</p>
+                <p>${char.description || 'No description available.'}</p>
             </div>
             
             ${abilitiesHTML}
@@ -161,9 +176,32 @@ function showCharacterStats(char) {
 
         viewDetails.innerHTML = statsHTML;
         document.getElementById('viewPanel').classList.add('active');
+
+        // Skins logic
+        if (char.skins) {
+            const skinsBtn = document.getElementById('skinsBtn');
+            const skinsMenu = document.getElementById('skinsMenu');
+            const mainImg = document.querySelector('.character-image img');
+            const skinItems = document.querySelectorAll('.skin-item');
+
+            skinsBtn.addEventListener('click', () => {
+                skinsMenu.classList.toggle('active');
+            });
+
+            skinItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const newImg = item.getAttribute('data-img');
+                    mainImg.src = newImg;
+                    skinsMenu.classList.remove('active');
+                    
+                    // Toggle selected class
+                    skinItems.forEach(i => i.classList.remove('selected'));
+                    item.classList.add('selected');
+                });
+            });
+        }
     }, 400);
 }
-
 
 // Add search on input (better UX)
 searchInp.addEventListener('input', (e) => {
@@ -189,14 +227,13 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-        // Show all by default
-        displayResults(characters);
+// Show all by default
+displayResults(characters);
 
-
-        // Close button logic
-        document.getElementById('closeView').addEventListener('click', () => {
-            document.getElementById('viewPanel').classList.remove('active');
-            setTimeout(() => {
-                results.classList.remove('fade-out');
-            }, 500);
-        });
+// Close button logic
+document.getElementById('closeView').addEventListener('click', () => {
+    document.getElementById('viewPanel').classList.remove('active');
+    setTimeout(() => {
+        results.classList.remove('fade-out');
+    }, 500);
+});
