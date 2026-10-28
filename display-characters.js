@@ -1,64 +1,94 @@
-const searchBtn = document.getElementById('searchBtn');
-const searchInp = document.getElementById('searchInp');
-const folderContainer = document.getElementById('folderContainer');
+const dialogue = new DialogueEngine();
+const indexCard = document.getElementById('indexCard');
+const indexGrid = document.getElementById('indexGrid');
+const indexCounter = document.getElementById('indexCounter');
+const folderSlot = document.getElementById('folderSlot');
+const chosenFolder = document.getElementById('chosenFolder');
+const chosenFolderName = document.getElementById('chosenFolderName');
+const backToIndex = document.getElementById('backToIndex');
 const filePanel = document.getElementById('filePanel');
 
-function displayResults(list) {
-    folderContainer.innerHTML = '';
+const survivors = characters.filter(c =>
+    !['2020x The Jester','Smoky The Demon','NMercy The Mutated Corpse','Rosetti The Spider'].includes(c.name)
+);
+const tormentors = characters.filter(c =>
+    ['2020x The Jester','Smoky The Demon','NMercy The Mutated Corpse','Rosetti The Spider'].includes(c.name)
+);
+
+let chosenSide = null;
+let currentList = [];
+
+// ============================================================
+// NAME INDEX GRID
+// ============================================================
+function renderNameIndex(list) {
+    currentList = list;
+    indexGrid.innerHTML = '';
+    indexCounter.textContent = `${list.length} ENTR${list.length === 1 ? 'Y' : 'IES'}`;
+
     list.forEach((c, index) => {
-        if (c.placement === 'char') {
-            const folder = document.createElement('div');
-            folder.className = 'folder-item';
-            // Stagger the slide-in animation
-            folder.style.animationDelay = `${index * 0.05}s`; 
-            
-            folder.innerHTML = `
-                <div class="folder-tab">${c.name.substring(0, 3).toUpperCase()}</div>
-                <div class="folder-front">
-                    <div class="folder-icon"><i class="fas fa-folder"></i></div>
-                    <span class="folder-name">${c.name}</span>
-                    <div class="folder-stamp">CLASSIFIED</div>
-                </div>
-            `;
-            
-            folder.addEventListener('click', () => {
-                showCharacterFile(c);
-            });
-            
-            folderContainer.appendChild(folder);
-        }
+        const nameBtn = document.createElement('button');
+        nameBtn.className = 'index-name';
+        nameBtn.style.animationDelay = `${index * 0.04}s`;
+        nameBtn.innerHTML = `<span class="index-num">${String(index + 1).padStart(2,'0')}</span><span class="index-label">${c.name}</span>`;
+        nameBtn.addEventListener('click', () => selectName(c));
+        indexGrid.appendChild(nameBtn);
     });
+
+    indexCard.classList.add('visible');
 }
 
-function showCharacterFile(char) {
+function selectName(char) {
+    // Hide the index
+    indexCard.classList.remove('visible');
+    folderSlot.classList.add('visible');
+    chosenFolder.classList.remove('selected', 'flipped');
+
+    // Populate folder with chosen character
+    chosenFolderName.textContent = char.name;
+    chosenFolder.querySelector('.folder-tab').textContent = char.name.substring(0, 4).toUpperCase();
+
+    // Reset folder click state
+    chosenFolder.onclick = () => {
+        if (!chosenFolder.classList.contains('flipped')) {
+            chosenFolder.classList.add('flipped');
+            // After flip animation, open the file panel
+            setTimeout(() => openFile(char), 500);
+        }
+    };
+}
+
+backToIndex.addEventListener('click', () => {
+    folderSlot.classList.remove('visible');
+    indexCard.classList.add('visible');
+});
+
+// ============================================================
+// FILE DISPLAY (same as before)
+// ============================================================
+function openFile(char) {
     let abilitiesHTML = '';
-    
-    // Build abilities if they exist
     if (characterAbilities[char.name]) {
-        const abilities = characterAbilities[char.name];
-        
+        const ab = characterAbilities[char.name];
         abilitiesHTML = `<div class="file-section abilities-section"><h3>ABILITY FILE</h3>`;
-        
-        if (abilities.passives && abilities.passives.length > 0) {
+        if (ab.passives && ab.passives.length) {
             abilitiesHTML += `<h4 class="sub-heading">Passives</h4><div class="passives-list">`;
-            abilities.passives.forEach(passive => {
-                abilitiesHTML += `<div class="passive-item"><strong>${passive.name}:</strong> ${passive.description}</div>`;
+            ab.passives.forEach(p => {
+                abilitiesHTML += `<div class="passive-item"><strong>${p.name}:</strong> ${p.description}</div>`;
             });
             abilitiesHTML += `</div>`;
         }
-        
-        if (abilities.abilities && abilities.abilities.length > 0) {
-            abilitiesHTML += `<h4 class="sub-heading" style="margin-top: 20px;">Active Abilities</h4><div class="abilities-list">`;
-            abilities.abilities.forEach(ability => {
+        if (ab.abilities && ab.abilities.length) {
+            abilitiesHTML += `<h4 class="sub-heading" style="margin-top:20px;">Active Abilities</h4><div class="abilities-list">`;
+            ab.abilities.forEach(a => {
                 abilitiesHTML += `
                     <div class="ability-item">
                         <div class="ability-header">
-                            <img src="${ability.icon}" class="ability-icon" onerror="this.src='https://via.placeholder.com/50x50/333/fff?text=?'">
-                            <span class="ability-name">${ability.name}</span>
+                            <img src="${a.icon}" class="ability-icon" onerror="this.src='https://via.placeholder.com/50x50/333/fff?text=?'">
+                            <span class="ability-name">${a.name}</span>
                         </div>
-                        <p class="ability-description">${ability.description}</p>
-                    </div>
-                `;
+                        <p class="ability-description">${a.description}</p>
+                    </div>`;
             });
             abilitiesHTML += `</div>`;
         }
@@ -66,16 +96,10 @@ function showCharacterFile(char) {
     }
 
     let statsHTML = `<div class="file-section stats-section"><h3>INTEL & STATS</h3><div class="stats-grid">`;
-    const statOrder = ["Skill Level", "Difficulty", "Health", "HP", "Role", "Regular Speed", "Sprinting Speed", "Max Stamina", "Stamina Loss per sec", "Stamina Gain per sec", "Terror Radius"];
-
-    statOrder.forEach(stat => {
-        if (char.stats && char.stats[stat] !== undefined) {
-            statsHTML += `
-                <div class="stat-row">
-                    <span class="stat-label">${stat}:</span>
-                    <span class="stat-value">${char.stats[stat]}</span>
-                </div>
-            `;
+    const order = ["Skill Level","Difficulty","Health","HP","Role","Regular Speed","Sprinting Speed","Max Stamina","Stamina Loss per sec","Stamina Gain per sec","Terror Radius"];
+    order.forEach(s => {
+        if (char.stats && char.stats[s] !== undefined) {
+            statsHTML += `<div class="stat-row"><span class="stat-label">${s}:</span><span class="stat-value">${char.stats[s]}</span></div>`;
         }
     });
     statsHTML += `</div></div>`;
@@ -88,31 +112,23 @@ function showCharacterFile(char) {
                 <button class="skins-toggle-btn" id="skinsBtn">View Files</button>
                 <div class="skins-menu" id="skinsMenu">
                     <div class="skins-grid">
-                        ${char.skins.map(skin => `
-                            <div class="skin-item" data-img="${skin.img}">
-                                <img src="${skin.img}" alt="${skin.name}">
-                                <div class="skin-overlay"><span class="skin-name">${skin.name}</span></div>
-                            </div>
-                        `).join('')}
+                        ${char.skins.map(s => `<div class="skin-item" data-img="${s.img}"><img src="${s.img}"><div class="skin-overlay"><span class="skin-name">${s.name}</span></div></div>`).join('')}
                     </div>
                 </div>
-            </div>
-        `;
+            </div>`;
     }
 
     const viewDetails = document.getElementById('viewDetails');
     viewDetails.innerHTML = `
         <div class="file-header">
             <h1>${char.name.toUpperCase()}</h1>
-            <div class="file-subtitle">CASE FILE #${Math.floor(Math.random() * 9000) + 1000}</div>
+            <div class="file-subtitle">CASE FILE #${Math.floor(Math.random()*9000)+1000} — ${chosenSide?.toUpperCase()}</div>
         </div>
-        
         <div class="file-layout">
             <div class="file-image-box">
-                <img src="${char.img}" alt="${char.name}" onerror="this.src='https://via.placeholder.com/300x400/333/fff?text=MISSING+FILE'">
+                <img src="${char.img}" onerror="this.src='https://via.placeholder.com/300x400/333/fff?text=MISSING+FILE'">
                 ${skinsHTML}
             </div>
-            
             <div class="file-text-box">
                 <div class="file-section">
                     <h3>DESCRIPTION</h3>
@@ -121,19 +137,16 @@ function showCharacterFile(char) {
                 ${statsHTML}
             </div>
         </div>
-        
         ${abilitiesHTML}
     `;
 
     filePanel.classList.add('active');
 
-    // Handle skin logic
     if (char.skins) {
         const skinsBtn = document.getElementById('skinsBtn');
         const skinsMenu = document.getElementById('skinsMenu');
         const mainImg = document.querySelector('.file-image-box img');
         const skinItems = document.querySelectorAll('.skin-item');
-
         skinsBtn.addEventListener('click', () => skinsMenu.classList.toggle('active'));
         skinItems.forEach(item => {
             item.addEventListener('click', () => {
@@ -146,25 +159,85 @@ function showCharacterFile(char) {
     }
 }
 
-// Search Functionality
-searchInp.addEventListener('input', (e) => {
-    const query = e.target.value.trim().toLowerCase();
-    if (!query) {
-        displayResults(characters);
-        return;
-    }
-    const filtered = characters.filter(c => c.name.toLowerCase().includes(query));
-    displayResults(filtered);
-});
-
-// Close Panel
 document.getElementById('closeView').addEventListener('click', () => {
     filePanel.classList.remove('active');
+    // Reset folder flip so user can reopen
+    setTimeout(() => {
+        chosenFolder.classList.remove('flipped');
+    }, 400);
 });
 
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') filePanel.classList.remove('active');
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        if (filePanel.classList.contains('active')) {
+            filePanel.classList.remove('active');
+            setTimeout(() => chosenFolder.classList.remove('flipped'), 400);
+        }
+    }
 });
 
-// Initialize
-displayResults(characters);
+// ============================================================
+// INTRO SEQUENCE
+// ============================================================
+window.addEventListener('load', () => {
+    document.getElementById('desk').classList.add('lit');
+
+    setTimeout(() => {
+        dialogue.start([
+            {
+                text: [
+                    { text: "You are here for ", effect: 'normal' },
+                    { text: "THEM", effect: 'shake' },
+                    { text: ", aren't you?", effect: 'normal' }
+                ]
+            },
+            {
+                text: "Which side of them are you asking for...",
+                choices: [
+                    { label: 'SURVIVORS', onSelect: () => { chosenSide = 'survivors'; } },
+                    { label: 'TORMENTORS', onSelect: () => { chosenSide = 'tormentors'; } }
+                ]
+            }
+        ], () => {
+            if (chosenSide === 'survivors') {
+                dialogue.start([
+                    {
+                        text: [
+                            { text: "Ah, wanna be a ", effect: 'normal' },
+                            { text: "HERO", effect: 'wave' },
+                            { text: " don't you? Everyone does...", effect: 'normal' }
+                        ]
+                    },
+                    {
+                        text: "Who are you looking for... which name?",
+                        onShow: () => {
+                            renderNameIndex(survivors);
+                            setTimeout(() => {
+                                document.getElementById('dialogueOverlay').classList.remove('active');
+                            }, 1600);
+                        }
+                    }
+                ]);
+            } else {
+                dialogue.start([
+                    {
+                        text: [
+                            { text: "Ah, a ", effect: 'normal' },
+                            { text: "MONSTER", effect: 'shake' },
+                            { text: " at heart. I like that...", effect: 'normal' }
+                        ]
+                    },
+                    {
+                        text: "Who are you looking for... which name?",
+                        onShow: () => {
+                            renderNameIndex(tormentors);
+                            setTimeout(() => {
+                                document.getElementById('dialogueOverlay').classList.remove('active');
+                            }, 1600);
+                        }
+                    }
+                ]);
+            }
+        });
+    }, 800);
+});
