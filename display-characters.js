@@ -311,3 +311,25 @@ window.addEventListener('load', () => {
         });
     }, 800);
 });
+
+// ... Keep all your existing code at the top ...
+
+// Update selectName
+function selectName(char) {
+    indexCard.classList.remove('visible');
+    
+    // Instead of CSS classes, tell Three.js to show the folder
+    window.spawn3DFolder(char.name);
+    
+    // When the 3D folder finishes flipping, Three.js calls this:
+    window.openDossierFrom3D = () => {
+        openFile(char); // Opens your HTML dossier
+        window.hide3DFolder();
+        indexCard.classList.add('visible');
+        
+        // Reset the 3D state so it can be clicked again later
+        window.openDossierFrom3D = null; 
+    };
+}
+
+// ... Keep the rest of your code (openFile, intro, etc) exactly the same ...
