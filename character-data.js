@@ -2,25 +2,25 @@ const characters = [
     // ==================== SURVIVORS ====================
     {
         name: 'CosmicError (Uchu)',
-        img: 'https://via.placeholder.com/300x400/333/fff?text=CosmicError',
+        img: 'img/Cosmic.svg',
         description: 'The Hedgehog. A support/sentinel with mobility and priority, using a gun and extreme speed to protect others. (Difficulty: Master)',
         stats: { "Skill Level": 8, "HP": 115, "Role": "Stunner/Speed Blitz/Support/Mobility" }
     },
     {
         name: 'Smile/Glitch',
-        img: 'https://via.placeholder.com/300x400/333/fff?text=Smile',
+        img: 'img/%E2%98%86%20S%20M%20I%20L%20E%20%E2%98%86.svg',
         description: 'A sentinel/support/tank who uses heavy hits and shockwaves to keep Tormentors away. (Difficulty: Master)',
         stats: { "Skill Level": 6, "HP": 120, "Role": "Stunner/Support" }
     },
     {
         name: 'Evadare/Woag',
-        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Evadare.svg',
+        img: 'img/Evadare.svg',
         description: 'The Martial Artist. A self-healer and stunner. (Difficulty: Expert)',
         stats: { "Skill Level": 4.5, "HP": 100, "Role": "Self Healer/Stunner" }
     },
     {
         name: 'Drowsey',
-        img: 'https://github.com/Drowsey-Works/Drowse-Paradox.exe-DC/blob/main/imgs/Drowsey%20New%20Render.webp?raw=true',
+        img: 'img/Drowsey%20New%20Render.webp',
         description: 'A kindly made robot who lives off of remembering the good times and staying positive. Using his music, he helps others avoid exhaustion and keep moving forward. (Difficulty: Master)',
         stats: { "Skill Level": 8, "HP": 70, "PHP": 30, "Role": "Support/Survivalist" }
     },
@@ -32,24 +32,24 @@ const characters = [
     },
     {
         name: 'Silly.Tiff',
-        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Silly%20Goober.svg',
+        img: 'img/Silly%20Goober.svg',
         description: 'A support/protector with force fields and bombs. (Difficulty: Advanced)',
         stats: { "Skill Level": 5, "HP": 100, "Role": "Support/Protector/Stunner/Mobility" }
     },
     {
         name: 'Ashline Dasher',
-        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Asher.svg',
+        img: 'img/Asher.svg',
         description: 'A stunner and highly mobile survivor wielding a scythe. (Difficulty: Expert)',
         stats: { "Skill Level": 6, "HP": 120, "Role": "Stunner/Mobility/Aggressive" }
     },
     {
         name: 'Sasha Rose',
-        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/New%20Renders/SashaRose/SashaRose.webp',
+        img: 'New%20Renders/SashaRose/SashaRose.webp',
         description: 'The Witch. A support survivor wielding spells and potions. (Difficulty: Advanced)',
         stats: { "Skill Level": 5, "HP": 100, "Role": "Support/Mobility/Team Player" },
         skins: [
-            { name: 'Pink Theme', img: 'https://github.com/Drowsey-Works/Drowse-Paradox.exe-DC/blob/main/New%20Renders/SashaRose/SashaRose(pink%20themed%20skin).webp?raw=true' },
-            { name: 'Purple Theme', img: 'https://github.com/Drowsey-Works/Drowse-Paradox.exe-DC/blob/main/New%20Renders/SashaRose/SashaRose(purple,%20skin).webp?raw=true' }
+            { name: 'Pink Theme', img: 'New%20Renders/SashaRose/SashaRose(pink%20themed%20skin).webp' },
+            { name: 'Purple Theme', img: 'New%20Renders/SashaRose/SashaRose(purple,%20skin).webp' }
         ]
     },
     {
@@ -60,29 +60,29 @@ const characters = [
     },
     {
         name: 'NlSickle',
-        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Nlsickle.svg',
+        img: 'img/Nlsickle.svg',
         description: 'A sharp, scythe-wielding survivor.',
         stats: { "Skill Level": 6.5, "HP": 120, "Role": "Sentinel|Priority|Distractor" }
     },
     {
         name: 'NlBeary',
-        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/New%20Renders/NlBeary/Nlbeary.webp',
+        img: 'New%20Renders/NlBeary/Nlbeary.webp',
         description: 'The bear survivor.',
         stats: { "Skill Level": 4.5, "HP": 100, "Role": "Support/Mobility/Protector/Sentinel" }
     },
     {
         name: 'Cosmia//Leah',
-        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Cosmia-Leah.svg',
+        img: 'img/Cosmia-Leah.svg',
         description: 'A survivor.'
     },
     {
         name: 'Wanderer Orcaz',
-        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/New%20Renders/Wanderer/Wanderer.webp',
+        img: 'New%20Renders/Wanderer/Wanderer.webp',
         description: 'The Wanderer Doll.'
     },
     {
         name: 'Hauntuh/Emoji Man',
-        img: 'https://raw.githubusercontent.com/DummyDW-development/Drowse-Paradox.exe-DC/refs/heads/main/imgs/Hauntuh.svg',
+        img: 'img/Hauntuh.svg',
         description: 'The Emoji Man.'
     },
     {
