@@ -206,6 +206,7 @@ body { background: #000; overflow: hidden; color: white; -webkit-tap-highlight-c
     transform: rotateY(180deg);
     transform-style: preserve-3d;
     backface-visibility: hidden;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); /* FIX: smooth rotate with front */
 }
 .paper-document {
     width: 80%; height: 85%;
@@ -219,6 +220,10 @@ body { background: #000; overflow: hidden; color: white; -webkit-tap-highlight-c
 
 .desk-folder.flipped .folder-front { transform: rotateY(-180deg); }
 .desk-folder.flipped .folder-tab { opacity: 0; }
+
+/* FIX: rotate the inside face back to camera when flipped so it becomes visible */
+.desk-folder.flipped .folder-inside { transform: rotateY(0deg); }
+
 .desk-folder.zooming {
     transform: translateY(-50px) scale(3);
     opacity: 0;
