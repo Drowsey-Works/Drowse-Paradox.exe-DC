@@ -80,6 +80,7 @@ let targetLookAt = new THREE.Vector3(0, 1, -4);
 const currentLookAt = new THREE.Vector3(0, 1, -4);
 
 let isTableMode = false;
+let isCameraAtTable = false; // <--- ADD THIS
 let panX = 0;
 let panZ = 0;
 let panBounds = { minX: -2, maxX: 2, minZ: -2, maxZ: 2 }; 
@@ -247,6 +248,9 @@ const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
 window.addEventListener('click', (event) => {
+
+    if (!isCameraAtTable || activeFolder) return;
+    
     // Ignore clicks if UI overlays are active
     if (document.getElementById('filePanel').classList.contains('active') || document.getElementById('dialogueOverlay').classList.contains('active')) return;
     
@@ -310,7 +314,6 @@ function animate() {
     requestAnimationFrame(animate);
     time += 0.05;
 
-    // Apply panning to the camera targets if in table mode
     if (isTableMode) {
         targetCameraPos.x = panX;
         targetCameraPos.z = 0.1 + panZ;
@@ -322,10 +325,11 @@ function animate() {
     currentLookAt.lerp(targetLookAt, 0.05);
     camera.lookAt(currentLookAt);
 
-    // Eye blinking animation
+    // NEW: Check if the camera is settled at the table (allows a tiny margin of error)
+    isCameraAtTable = isTableMode && camera.position.distanceTo(targetCameraPos) < 0.15;
+
     const blink = Math.sin(time * 0.5) > 0.98 ? 0.1 : 1;
-    leftEye.scale.y = blink; 
-    rightEye.scale.y = blink;
+    leftEye.scale.y = blink; rightEye.scale.y = blink;
 
     composer.render();
 }
