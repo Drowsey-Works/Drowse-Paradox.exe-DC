@@ -78,13 +78,15 @@ function openFile(char) {
 // Bridge from 3D to HTML
 window.openDossierFrom3D = (char) => { openFile(char); };
 
-document.getElementById('closeView').addEventListener('click', () => {
+document.getElementById('closeView').addEventListener('click', (e) => {
+    e.stopPropagation(); // <--- ADD THIS: Stops the click from hitting the 3D desk
     filePanel.classList.remove('active');
     if (window.closeActiveFolder) window.closeActiveFolder();
 });
 
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && filePanel.classList.contains('active')) {
+        e.stopPropagation();
         filePanel.classList.remove('active');
         if (window.closeActiveFolder) window.closeActiveFolder();
     }
