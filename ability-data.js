@@ -135,7 +135,7 @@ const characterAbilities = {
         ]
     },
 
-    'Drowse': {
+    'Drowsey': {
         passives: [],
         abilities: [
             { name: 'Rework Pending', description: 'Status: Expecting a rework... [LO4D1N9...]', icon: ICON }
