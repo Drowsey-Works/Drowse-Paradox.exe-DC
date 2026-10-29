@@ -2,25 +2,25 @@ const characters = [
     // ==================== SURVIVORS ====================
     {
         name: 'CosmicError (Uchu)',
-        img: 'img/Cosmic.svg',
+        img: 'imgs/Cosmic.svg',
         description: 'The Hedgehog. A support/sentinel with mobility and priority, using a gun and extreme speed to protect others. (Difficulty: Master)',
         stats: { "Skill Level": 8, "HP": 115, "Role": "Stunner/Speed Blitz/Support/Mobility" }
     },
     {
         name: 'Smile/Glitch',
-        img: 'img/%E2%98%86%20S%20M%20I%20L%20E%20%E2%98%86.svg',
+        img: 'imgs/%E2%98%86%20S%20M%20I%20L%20E%20%E2%98%86.svg',
         description: 'A sentinel/support/tank who uses heavy hits and shockwaves to keep Tormentors away. (Difficulty: Master)',
         stats: { "Skill Level": 6, "HP": 120, "Role": "Stunner/Support" }
     },
     {
         name: 'Evadare/Woag',
-        img: 'img/Evadare.svg',
+        img: 'imgs/Evadare.svg',
         description: 'The Martial Artist. A self-healer and stunner. (Difficulty: Expert)',
         stats: { "Skill Level": 4.5, "HP": 100, "Role": "Self Healer/Stunner" }
     },
     {
         name: 'Drowsey',
-        img: 'img/Drowsey%20New%20Render.webp',
+        img: 'imgs/Drowsey%20New%20Render.webp',
         description: 'A kindly made robot who lives off of remembering the good times and staying positive. Using his music, he helps others avoid exhaustion and keep moving forward. (Difficulty: Master)',
         stats: { "Skill Level": 8, "HP": 70, "PHP": 30, "Role": "Support/Survivalist" }
     },
@@ -32,13 +32,13 @@ const characters = [
     },
     {
         name: 'Silly.Tiff',
-        img: 'img/Silly%20Goober.svg',
+        img: 'imgs/Silly%20Goober.svg',
         description: 'A support/protector with force fields and bombs. (Difficulty: Advanced)',
         stats: { "Skill Level": 5, "HP": 100, "Role": "Support/Protector/Stunner/Mobility" }
     },
     {
         name: 'Ashline Dasher',
-        img: 'img/Asher.svg',
+        img: 'imgs/Asher.svg',
         description: 'A stunner and highly mobile survivor wielding a scythe. (Difficulty: Expert)',
         stats: { "Skill Level": 6, "HP": 120, "Role": "Stunner/Mobility/Aggressive" }
     },
@@ -60,7 +60,7 @@ const characters = [
     },
     {
         name: 'NlSickle',
-        img: 'img/Nlsickle.svg',
+        img: 'imgs/Nlsickle.svg',
         description: 'A sharp, scythe-wielding survivor.',
         stats: { "Skill Level": 6.5, "HP": 120, "Role": "Sentinel|Priority|Distractor" }
     },
@@ -72,7 +72,7 @@ const characters = [
     },
     {
         name: 'Cosmia//Leah',
-        img: 'img/Cosmia-Leah.svg',
+        img: 'imgs/Cosmia-Leah.svg',
         description: 'A survivor.'
     },
     {
@@ -82,7 +82,7 @@ const characters = [
     },
     {
         name: 'Hauntuh/Emoji Man',
-        img: 'img/Hauntuh.svg',
+        img: 'imgs/Hauntuh.svg',
         description: 'The Emoji Man.'
     },
     {
