@@ -200,6 +200,13 @@ body { background: #000; overflow: hidden; color: white; -webkit-tap-highlight-c
 }
 .desk-folder:hover .folder-front { background: #e6d5b8; }
 
+/* Any child of the front cover also hides its backface when the cover flips past 90°.
+   Without this, .folder-stamp (which has its own rotate transform) shows its
+   mirrored back face floating on the desk after the cover opens. */
+.folder-front * {
+    backface-visibility: hidden;
+}
+
 /* The INSIDE — the back half of the fold, lying flat on the desk.
    Always facing the viewer. Never rotates. */
 .folder-inside {
