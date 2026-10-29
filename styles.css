@@ -179,6 +179,10 @@ body { background: #000; overflow: hidden; color: white; -webkit-tap-highlight-c
     border: 2px solid #8c7a58; border-bottom: none;
     z-index: 2; transition: opacity 0.2s;
 }
+
+/* The FRONT cover — the half that swings open like a book cover.
+   Sits 2px above the inside so it occludes it cleanly when closed.
+   Past 90° its back face is hidden, so it simply disappears. */
 .folder-front {
     position: absolute; inset: 0;
     background: #d4c3a3;
@@ -192,10 +196,13 @@ body { background: #000; overflow: hidden; color: white; -webkit-tap-highlight-c
     transform-style: preserve-3d;
     transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     backface-visibility: hidden;
+    transform: translateZ(2px);   /* lift above the inside so no z-fighting */
 }
 .desk-folder:hover .folder-front { background: #e6d5b8; }
 
-/* Paper inside */
+/* The INSIDE — the back half of the fold, lying flat on the desk.
+   Always facing the viewer. Never rotates. The front cover just hides it
+   until the cover swings away. */
 .folder-inside {
     position: absolute; inset: 0;
     background: #f4e4c1;
@@ -203,10 +210,8 @@ body { background: #000; overflow: hidden; color: white; -webkit-tap-highlight-c
     border-radius: 4px;
     display: flex; justify-content: center; align-items: center;
     box-shadow: inset 0 0 30px rgba(0,0,0,0.5);
-    transform: rotateY(180deg);
-    transform-style: preserve-3d;
     backface-visibility: hidden;
-    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); /* FIX: smooth rotate with front */
+    /* no transform, no transition — this half does not move */
 }
 .paper-document {
     width: 80%; height: 85%;
@@ -218,11 +223,11 @@ body { background: #000; overflow: hidden; color: white; -webkit-tap-highlight-c
     color: #8c7a58; font-size: 14px; opacity: 0.8;
 }
 
-.desk-folder.flipped .folder-front { transform: rotateY(-180deg); }
+/* When flipped: the front cover swings away around its left edge,
+   past 90° it's backface-hidden and vanishes. The inside is revealed. */
+.desk-folder.flipped .folder-front { transform: translateZ(2px) rotateY(-180deg); }
 .desk-folder.flipped .folder-tab { opacity: 0; }
-
-/* FIX: rotate the inside face back to camera when flipped so it becomes visible */
-.desk-folder.flipped .folder-inside { transform: rotateY(0deg); }
+/* no .desk-folder.flipped .folder-inside rule — the inside never changes */
 
 .desk-folder.zooming {
     transform: translateY(-50px) scale(3);
