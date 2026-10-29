@@ -6,8 +6,6 @@
   <title>THE ARCHIVE</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
-  
-  <!-- Import Three.js and Addons via ES Modules -->
   <script type="importmap">
     {
       "imports": {
@@ -18,21 +16,13 @@
   </script>
 </head>
 <body>
-
-  <!-- The 3D Room -->
   <canvas id="webgl-canvas"></canvas>
 
-  <!-- HTML UI Overlay -->
   <div class="ui-layer">
-    
-    <!-- Index Card (Names) -->
-    <div class="index-card" id="indexCard">
-      <div class="index-header">
-        <span>FILE INDEX</span>
-        <span class="index-counter" id="indexCounter">0 ENTRIES</span>
-      </div>
-      <div class="index-grid" id="indexGrid"></div>
-    </div>
+    <!-- Switch Side Button (Floats top right) -->
+    <button class="switch-side-btn" id="switchSideBtn" style="display: none;">
+        <i class="fas fa-sync-alt"></i> SWITCH SIDE
+    </button>
 
     <!-- The Opened File (Dossier) -->
     <div class="file-panel" id="filePanel">
@@ -51,14 +41,12 @@
         <div class="dialogue-choices" id="dialogueChoices"></div>
       </div>
     </div>
-
   </div>
 
-  <!-- Scripts -->
   <script src="character-data.js"></script>
   <script src="ability-data.js"></script>
   <script src="dialogue-system.js"></script>
-  <script src="three-scene.js" type="module"></script> <!-- New 3D File -->
+  <script src="three-scene.js" type="module"></script>
   <script src="display-characters.js"></script>
 </body>
 </html>
