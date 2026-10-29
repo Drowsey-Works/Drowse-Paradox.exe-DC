@@ -16,9 +16,12 @@ const tormentors = characters.filter(c =>
 );
 
 let chosenSide = null;
-let switchCount = 0; // Tracks how many times they switch sides
+let switchCount = 0;
 
-// The Archivist's judgemental lines for switching
+// Generation counter — invalidates stale flip timeouts if the user
+// clicks BACK TO INDEX or picks another character mid-animation.
+let flipGeneration = 0;
+
 const switchLines = [
     "Ah, got a bit turned around?",
     "Hm, bit indecisive aren't you?",
@@ -48,67 +51,62 @@ function renderNameIndex(list) {
 function selectName(char) {
     indexCard.classList.remove('visible');
     folderSlot.classList.add('visible');
-    chosenFolder.classList.remove('flipped');
+    chosenFolder.classList.remove('flipped', 'zooming');
+    document.querySelector('.desk-vignette').classList.remove('fade-black');
 
     chosenFolderName.textContent = char.name;
     chosenFolder.querySelector('.folder-tab').textContent = char.name.substring(0, 4).toUpperCase();
 
-    // The click sequence for the folder
     chosenFolder.onclick = () => {
-        if (!chosenFolder.classList.contains('flipped')) {
-            // 1. Flip the cover open
-            chosenFolder.classList.add('flipped');
-            
-            // 2. Wait for flip, then zoom in
+        if (chosenFolder.classList.contains('flipped')) return;
+
+        const myGen = ++flipGeneration;
+        chosenFolder.classList.add('flipped');
+
+        // 600ms flip + 800ms hold so the user actually sees the inside
+        setTimeout(() => {
+            if (myGen !== flipGeneration) return;
+
+            chosenFolder.classList.add('zooming');
+            document.querySelector('.desk-vignette').classList.add('fade-black');
+
             setTimeout(() => {
-                chosenFolder.classList.add('zooming');
-                
-                // 3. Fade to black
-                document.querySelector('.desk-vignette').classList.add('fade-black');
-                
-                // 4. Show the document after the screen is dark
-                setTimeout(() => {
-                    openFile(char);
-                    // Reset UI so if they close the file, they return to the desk
-                    chosenFolder.classList.remove('flipped', 'zooming');
-                    document.querySelector('.desk-vignette').classList.remove('fade-black');
-                    folderSlot.classList.remove('visible');
-                    indexCard.classList.add('visible');
-                }, 1000); // 1s for the dark transition
-            }, 600); // 0.6s for the 3D flip
-        }
+                if (myGen !== flipGeneration) return;
+
+                openFile(char);
+                chosenFolder.classList.remove('flipped', 'zooming');
+                document.querySelector('.desk-vignette').classList.remove('fade-black');
+                folderSlot.classList.remove('visible');
+                indexCard.classList.add('visible');
+            }, 1000);
+        }, 1400);
     };
 }
 
 backToIndex.addEventListener('click', () => {
+    flipGeneration++;
     folderSlot.classList.remove('visible');
     indexCard.classList.add('visible');
+    chosenFolder.classList.remove('flipped', 'zooming');
+    document.querySelector('.desk-vignette').classList.remove('fade-black');
 });
 
 // ============================================================
-// SIDE SWITCHING (The "Switch Side" Button)
+// SIDE SWITCHING
 // ============================================================
 function showSwitchButton() {
+    if (document.querySelector('.switch-side-btn')) return;
     const switchBtn = document.createElement('button');
     switchBtn.className = 'switch-side-btn';
     switchBtn.innerHTML = `<i class="fas fa-sync-alt"></i> SWITCH SIDE`;
-    
-    // Add it to the index card header
-    const header = document.querySelector('.index-header');
-    if (!document.querySelector('.switch-side-btn')) {
-        header.appendChild(switchBtn);
-    }
+    document.querySelector('.index-header').appendChild(switchBtn);
 
     switchBtn.onclick = () => {
         indexCard.classList.remove('visible');
         dialogue.start([
-            {
-                text: switchLines[switchCount % switchLines.length],
-                effect: 'normal'
-            },
+            { text: switchLines[switchCount % switchLines.length], effect: 'normal' },
             {
                 text: "Alright, then... who else are you looking for?",
-                effect: 'normal',
                 choices: [
                     { label: 'SURVIVORS', onSelect: () => { chosenSide = 'survivors'; } },
                     { label: 'TORMENTORS', onSelect: () => { chosenSide = 'tormentors'; } }
@@ -116,23 +114,21 @@ function showSwitchButton() {
             }
         ], () => {
             switchCount++;
-            if (chosenSide === 'survivors') {
-                renderNameIndex(survivors);
-            } else {
-                renderNameIndex(tormentors);
-            }
+            renderNameIndex(chosenSide === 'survivors' ? survivors : tormentors);
         });
     };
 }
 
 // ============================================================
-// FILE DISPLAY
+// FULL-PAGE DOSSIER
 // ============================================================
 function openFile(char) {
+    // ---------- Abilities column ----------
     let abilitiesHTML = '';
     if (characterAbilities[char.name]) {
         const ab = characterAbilities[char.name];
-        abilitiesHTML = `<div class="file-section abilities-section"><h3>ABILITY FILE</h3>`;
+        abilitiesHTML = `<div class="dossier-column right-column"><h3 class="column-title">ABILITY FILE</h3>`;
+
         if (ab.passives && ab.passives.length) {
             abilitiesHTML += `<h4 class="sub-heading">Passives</h4><div class="passives-list">`;
             ab.passives.forEach(p => {
@@ -141,12 +137,12 @@ function openFile(char) {
             abilitiesHTML += `</div>`;
         }
         if (ab.abilities && ab.abilities.length) {
-            abilitiesHTML += `<h4 class="sub-heading" style="margin-top:20px;">Active Abilities</h4><div class="abilities-list">`;
+            abilitiesHTML += `<h4 class="sub-heading">Active Abilities</h4><div class="abilities-list">`;
             ab.abilities.forEach(a => {
                 abilitiesHTML += `
                     <div class="ability-item">
                         <div class="ability-header">
-                            <img src="${a.icon}" class="ability-icon" onerror="this.src='https://via.placeholder.com/50x50/333/fff?text=?'">
+                            <img src="${a.icon}" class="ability-icon" onerror="this.src='https://via.placeholder.com/50x50/8c7a58/221100?text=?'">
                             <span class="ability-name">${a.name}</span>
                         </div>
                         <p class="ability-description">${a.description}</p>
@@ -155,23 +151,29 @@ function openFile(char) {
             abilitiesHTML += `</div>`;
         }
         abilitiesHTML += `</div>`;
+    } else {
+        abilitiesHTML = `<div class="dossier-column right-column"><h3 class="column-title">ABILITY FILE</h3><p class="empty-state">No ability data on file for this subject.</p></div>`;
     }
 
-    let statsHTML = `<div class="file-section stats-section"><h3>INTEL & STATS</h3><div class="stats-grid">`;
-    const order = ["Skill Level","Difficulty","Health","HP","Role","Regular Speed","Sprinting Speed","Max Stamina","Stamina Loss per sec","Stamina Gain per sec","Terror Radius"];
-    order.forEach(s => {
-        if (char.stats && char.stats[s] !== undefined) {
-            statsHTML += `<div class="stat-row"><span class="stat-label">${s}:</span><span class="stat-value">${char.stats[s]}</span></div>`;
-        }
-    });
-    statsHTML += `</div></div>`;
+    // ---------- Stats block ----------
+    let statsHTML = '';
+    if (char.stats && Object.keys(char.stats).length > 0) {
+        statsHTML = `<div class="stats-block">`;
+        const order = ["Skill Level","Difficulty","Health","HP","Role","Regular Speed","Sprinting Speed","Max Stamina","Stamina Loss per sec","Stamina Gain per sec","Terror Radius"];
+        order.forEach(s => {
+            if (char.stats[s] !== undefined) {
+                statsHTML += `<div class="stat-row"><span class="stat-label">${s}:</span><span class="stat-value">${char.stats[s]}</span></div>`;
+            }
+        });
+        statsHTML += `</div>`;
+    }
 
+    // ---------- Skins menu ----------
     let skinsHTML = '';
-    if (char.skins) {
+    if (char.skins && char.skins.length) {
         skinsHTML = `
-            <div class="file-section skins-section">
-                <h3>KNOWN DISGUISES</h3>
-                <button class="skins-toggle-btn" id="skinsBtn">View Files</button>
+            <div class="skins-section">
+                <button class="skins-toggle-btn" id="skinsBtn"><i class="fas fa-mask"></i> KNOWN DISGUISES</button>
                 <div class="skins-menu" id="skinsMenu">
                     <div class="skins-grid">
                         ${char.skins.map(s => `<div class="skin-item" data-img="${s.img}"><img src="${s.img}"><div class="skin-overlay"><span class="skin-name">${s.name}</span></div></div>`).join('')}
@@ -180,35 +182,43 @@ function openFile(char) {
             </div>`;
     }
 
+    // ---------- Compose ----------
     const viewDetails = document.getElementById('viewDetails');
     viewDetails.innerHTML = `
-        <div class="file-header">
-            <h1>${char.name.toUpperCase()}</h1>
-            <div class="file-subtitle">CASE FILE #${Math.floor(Math.random()*9000)+1000} — ${chosenSide?.toUpperCase()}</div>
-        </div>
-        <div class="file-layout">
-            <div class="file-image-box">
-                <img src="${char.img}" onerror="this.src='https://via.placeholder.com/300x400/333/fff?text=MISSING+FILE'">
-                ${skinsHTML}
+        <div class="dossier-header">
+            <div>
+                <h1>${char.name.toUpperCase()}</h1>
+                <div class="file-subtitle">CASE FILE #${Math.floor(Math.random()*9000)+1000} — ${chosenSide?.toUpperCase()}</div>
             </div>
-            <div class="file-text-box">
-                <div class="file-section">
-                    <h3>DESCRIPTION</h3>
+            <div class="classified-stamp">CLASSIFIED</div>
+        </div>
+
+        <div class="dossier-body">
+            <div class="dossier-column left-column">
+                <div class="image-box">
+                    <img src="${char.img}" onerror="this.src='https://via.placeholder.com/400x500/333/fff?text=MISSING+FILE'">
+                </div>
+                ${skinsHTML}
+                <div class="section">
+                    <h3 class="column-title">SUBJECT DESCRIPTION</h3>
                     <p>${char.description || 'No description found in archives.'}</p>
                 </div>
-                ${statsHTML}
+                ${statsHTML ? `<div class="section"><h3 class="column-title">INTEL &amp; STATS</h3>${statsHTML}</div>` : ''}
             </div>
+            ${abilitiesHTML}
         </div>
-        ${abilitiesHTML}
     `;
 
     filePanel.classList.add('active');
+    filePanel.scrollTop = 0;
 
-    if (char.skins) {
+    // ---------- Wire up skins ----------
+    if (char.skins && char.skins.length) {
         const skinsBtn = document.getElementById('skinsBtn');
         const skinsMenu = document.getElementById('skinsMenu');
-        const mainImg = document.querySelector('.file-image-box img');
+        const mainImg = document.querySelector('.image-box img');
         const skinItems = document.querySelectorAll('.skin-item');
+
         skinsBtn.addEventListener('click', () => skinsMenu.classList.toggle('active'));
         skinItems.forEach(item => {
             item.addEventListener('click', () => {
@@ -223,31 +233,27 @@ function openFile(char) {
 
 document.getElementById('closeView').addEventListener('click', () => {
     filePanel.classList.remove('active');
-    // Ensure index is visible when closing file
     setTimeout(() => {
         indexCard.classList.add('visible');
-        showSwitchButton(); // Ensure button is there
+        showSwitchButton();
     }, 300);
 });
 
 document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-        if (filePanel.classList.contains('active')) {
-            filePanel.classList.remove('active');
-            setTimeout(() => {
-                indexCard.classList.add('visible');
-                showSwitchButton();
-            }, 300);
-        }
+    if (e.key === 'Escape' && filePanel.classList.contains('active')) {
+        filePanel.classList.remove('active');
+        setTimeout(() => {
+            indexCard.classList.add('visible');
+            showSwitchButton();
+        }, 300);
     }
 });
 
 // ============================================================
-// INTRO SEQUENCE
+// INTRO
 // ============================================================
 window.addEventListener('load', () => {
     document.getElementById('desk').classList.add('lit');
-
     setTimeout(() => {
         dialogue.start([
             {
@@ -279,9 +285,7 @@ window.addEventListener('load', () => {
                         onShow: () => {
                             renderNameIndex(survivors);
                             showSwitchButton();
-                            setTimeout(() => {
-                                document.getElementById('dialogueOverlay').classList.remove('active');
-                            }, 1600);
+                            setTimeout(() => document.getElementById('dialogueOverlay').classList.remove('active'), 1600);
                         }
                     }
                 ]);
@@ -299,9 +303,7 @@ window.addEventListener('load', () => {
                         onShow: () => {
                             renderNameIndex(tormentors);
                             showSwitchButton();
-                            setTimeout(() => {
-                                document.getElementById('dialogueOverlay').classList.remove('active');
-                            }, 1600);
+                            setTimeout(() => document.getElementById('dialogueOverlay').classList.remove('active'), 1600);
                         }
                     }
                 ]);
