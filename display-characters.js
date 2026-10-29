@@ -1,8 +1,10 @@
 const dialogue = new DialogueEngine();
 const filePanel = document.getElementById('filePanel');
 
-const survivors = characters.filter(c => !['2020x The Jester','Smoky The Demon','NMercy The Mutated Corpse','Rosetti The Spider'].includes(c.name));
-const tormentors = characters.filter(c => ['2020x The Jester','Smoky The Demon','NMercy The Mutated Corpse','Rosetti The Spider'].includes(c.name));
+const tormentorsList = ['2020x The Jester','Smoky The Demon','NMercy The Mutated Corpse','Rozetti The Spider','SpaceHog The ShapeShifter'];
+
+const survivors = characters.filter(c => !tormentorsList.includes(c.name));
+const tormentors = characters.filter(c => tormentorsList.includes(c.name));
 
 let chosenSide = null;
 let switchCount = 0;
