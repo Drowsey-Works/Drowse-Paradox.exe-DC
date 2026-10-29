@@ -1,204 +1,157 @@
-// ============================================================
-// ABILITY DATA — keyed by character name
-// ============================================================
-
 const ICON = 'https://via.placeholder.com/50x50/8c7a58/221100?text=AB';
 
 const characterAbilities = {
-
     // ==================== SURVIVORS ====================
-
-    '☆ S M I L E ☆': {
+    'CosmicError (Uchu)': {
         passives: [
-            { name: 'Guilt', description: 'Smile becomes more guilty as he loses more and more survivors, this will cause him to stun for +0.75 more for every stun he lands. When he is damaged by a Tormentor he will take +15 more DMG per hit landed on him.' },
-            { name: 'Social', description: 'Smile loses energy faster while the others are around. (He likes to impress them, I guess.)' }
+            { name: 'Mothers Call', description: 'Whenever Cosmic is downed all abilities CD is set to 0 and his gun will reload fully. (Gun now has 16 shots.) Stuns for 1 second. Cosmic\'s Rush will have a shorter CD during LMS (30 - 20.5 seconds).' }
         ],
         abilities: [
-            { name: 'Ground Pound', description: 'While Smile is airborne he charges energy in his fist before punching into the ground. The shockwave pushes Tormentors back a few studs. Smile loses access to his other abilities until Ground Pound is ready to use again. (Stun duration: 3.5s)', icon: ICON },
-            { name: 'Punch', description: 'Smile pulls his fist back and forcefully forces it towards Tormentors — this sends them back a few studs and applies the Glitched effect (temporarily blinds them and damages them over time). (Stun duration: 4.5s)', icon: ICON },
-            { name: 'Slide / Kick', description: 'While running, Smile slides a few studs further, opening up his Kick ability. Kick: Smile quickly charges energy into the force of the kick, sending both him and the Tormentor back. (Stun duration: 2s)', icon: ICON },
-            { name: 'Charge', description: 'Smile stands stationary while charging energy, healing himself +5 HP every 10 seconds while close to other Survivors. Smile\'s charge has 4 stages before being fully charged (takes about a minute). Stun duration lasts longer the better the charge: Stage 1 +0.5, Stage 2 +0.75, Stage 3 +1.5, Stage 4 +2.', icon: ICON }
+            { name: 'Gun', description: 'Cosmic aims a gun that follows mouse (or camera for Mobile). The gun contains 5 bullets, each time it\'s shot it will take 6 seconds to be shot again. Each shot does 40 damage and knocks the killer back by 2 studs. Stun duration: 1 second each shot. CD: 55s.', icon: ICON },
+            { name: 'Blitz', description: 'Cosmic gains a speed boost for 7 seconds. The move starts slow and picks up speed the longer you run. If the hitbox touches a killer, Cosmic will kick them and will stop running. This can also pick up teammates, who can jump off by jumping. Stun duration: 3 - 5 seconds (depending on Cosmic\'s Speed). CD: 30s.', icon: ICON },
+            { name: 'Snap Shot', description: 'Cosmic gets into a stance and then phases into the ground. The killer will then flash red 3 times (it\'s fast, be ready) before they are stunned by Cosmic. (The move can be blocked or avoided with invisibility or immortality.) Stun Duration: 4s. CD: 20s.', icon: ICON }
         ]
     },
-
-    'Cosmic': {
+    'Smile/Glitch': {
         passives: [
-            { name: '16 Shots', description: 'When Cosmic is on his last life, his abilities will instantly be put off cooldown. Cosmic doesn\'t get the Last Life debuff.' },
-            { name: 'Swap', description: 'During Last Man Standing, Cosmic switches out his shotgun for a Pistol. The pistol has INF ammo and stuns for 1 second. (CD per shot: 10s)' },
-            { name: 'Protective', description: 'While Cosmic is protecting Celeste, she is instead given 25% resistance, and Cosmic will take more DMG.' }
+            { name: 'Guilt', description: 'Smile gains HP if he\'s out of danger for a short amount of time (Max HP is 75). Smile\'s punch stuns longer during LMS. (Stun Duration: 4 - 6 seconds).' }
         ],
         abilities: [
-            { name: 'Shotgun', description: 'Cosmic aims his shotgun, which follows the cursor (or camera for mobile players). Cosmic has 16 shells in total and can shoot 8 before needing to reload. (CD: 20s) Once his shotgun is out of ammo it goes on a longer cooldown before he can shoot again. (CD: 35s) A shot Tormentor suffers extreme knockback and a 2.5s stun. (CD per shot: 20s)', icon: ICON },
-            { name: 'Blitz', description: 'Cosmic slowly moves faster while sprinting (takes about 5 seconds to reach full speed). He can carry certain Survivors during this to get them away from danger. If he collides with a Tormentor, both he (and the carried Survivor) and the Tormentor are knocked back — acts as a 3s stun for both.', icon: ICON },
-            { name: 'Counter', description: 'Cosmic gets into a stance before striking the Tormentor with his fist. The Tormentor is flashed white for 2 seconds (while glowing they can be stun-stacked by other Survivors). The Tormentor is also given blindness and a 3s stun.', icon: ICON },
-            { name: 'Guard', description: 'Cosmic marks any Survivor. While protected, the Survivor gains speed during chase and +15% DMG resistance. As a downside, Cosmic takes the damage for them every time they\'re hit. Cosmic has a temporary slowness buff while protecting. (Cannot Protect Inactive.)', icon: ICON }
+            { name: 'Clash', description: 'Glitch dashes forward (not controllable). If it hits a killer, it will knock both Smile and the killer back for 2 seconds. Smile gets a speed boost for 2 seconds. (Can start a clash). CD: 28.5s.', icon: ICON },
+            { name: 'Slide Kick / Punch', description: 'Slide Kick: Glitch slides forward which gives him a slight speed boost. Once landed, Glitch will kick the killer in the air (Air time: 1 second). Stun Duration: 2s. | Punch Variant: Smile punches forward throwing a simple punch. (Can cancel grabs). Stun Duration: 4s. (Swap) Swap between punch and kick variant.', icon: ICON },
+            { name: 'Ground Pound', description: 'Smile punches into the ground which will shoot up 3 rocks where he is facing. The rocks can stun but will stun for 2 seconds. If used directly on a killer it will stun for 4 seconds. CD: 25s.', icon: ICON }
         ]
     },
-
-    'Celeste': {
+    'Evadare/Woag': {
         passives: [
-            { name: 'Sanity Meter', description: 'Celeste drains sanity if she isn\'t close to other Survivors or is being chased by Tormentors. Staying close to Survivors raises her sanity meter. If the meter is full, she heals 5 HP every 2 seconds.' },
-            { name: 'Protected', description: 'While close to BreadMan, Cosmic, or Inactive, Celeste\'s sanity increases faster.' },
-            { name: 'Vulnerable', description: 'Celeste takes more DMG than others, making her an easy target to take down.' },
-            { name: 'Panic', description: 'While her sanity is lower, she gains more speed upon using Sugar Rush or being low HP.' }
+            { name: 'Swift Sweeper', description: 'Landing 5 or more parry punches will start to slow down killers for 2 seconds each stun.' },
+            { name: 'Amazing Performance', description: 'Landing stuns while teammates are in danger will cause burning and disable a killer\'s ability for 1 second (doesn\'t affect Rosetti).' }
         ],
         abilities: [
-            { name: 'Double Jump (Passive + Active)', description: 'When activated, nearby Survivors gain an extra jump that disappears after 15 seconds. Celeste already has a double jump as a passive — while active she gets 3 jumps instead of her normal 2, lasting 20 seconds.', icon: ICON },
-            { name: 'Push', description: 'When a Tormentor is close enough, Celeste pushes them back a few studs to avoid fatal DMG to herself. Acts as a ~1.5s stun. She can also push teammates, but not as far.', icon: ICON },
-            { name: 'Sugar Rush', description: 'When activated, Celeste is highlighted to other Survivors for a short time — a signal that she\'s in danger. She gains speed II for 6 seconds. When this wears off, she is highlighted red to others once more.', icon: ICON },
-            { name: 'Health Pack', description: 'Celeste carries a health pack on her waist. She can share it with other Survivors to heal them by 45 HP. While healing others, Celeste is stationary and highlighted to all Survivors — a signal that she\'s ready to heal.', icon: ICON }
+            { name: 'Round A Bout Kick', description: 'Evadare swings his foot which catches fire for a short amount of time. Landing this on any killer will burn them (not 2020x) and stun them for 4 seconds.', icon: ICON },
+            { name: 'Parry Punch', description: 'Evadare moves himself back and glows white. If the killer hits him, he will punch them back (cannot be blocked). Successful hits will give Evadare 25% HP back and a boost. CD: 25s. Stun Duration: 2s.', icon: ICON },
+            { name: 'Ketchup Lover', description: 'Evadare pulls out a bottle of ketchup and shoots it into his mouth. It heals him +20 HP or +40 HP. CD: 40s.', icon: ICON }
         ]
     },
-
-    'Silly Goober': {
-        passives: [
-            { name: 'Dodge Rolls', description: 'Silly has a meter (visible on the side of the screen) that slowly builds up, taking about 35 seconds to fully charge. At 25% she gains one dodge roll, at 50% two, and at 100% three. Rolling past a Tormentor\'s attack grants her Resistance III until the roll animation ends. She cannot roll mid-air.' }
-        ],
-        abilities: [
-            { name: 'Force Field', description: 'Silly activates her shield, making her immune to anything for 7 seconds. When the shield breaks, she gains a speed boost and Resistance III for 3 seconds, plus speed II for 2 seconds.', icon: ICON },
-            { name: 'Share', description: 'Silly selects a target and shares her shield with them. If used while her shield is active, her shield loses 3 seconds off its timer. The Survivor with the shield is immune for 4 seconds. When it breaks, both the Survivor and Silly gain a speed boost for 1.5 seconds.', icon: ICON },
-            { name: 'Bombs Away', description: 'Silly slows down for about 3 seconds before tossing a ticking bomb above her head. The bomb ticks down for 2 seconds before exploding anything within a 10-stud radius. Hit Tormentors suffer knockback, blindness, and nausea for 3 seconds. (Stun duration: 4s)', icon: ICON }
-        ]
-    },
-
-    'Asher Dasher': {
-        passives: [],
-        abilities: [
-            { name: 'Scythe Swing', description: 'Asher swings her scythe, knocking Tormentors back a few studs. Tormentors are given Helpless for 3 seconds and Bleeding VI for 4 seconds. (Stun duration: 4s)', icon: ICON },
-            { name: 'Scythe Curses', description: 'Asher raises her scythe in the air for a few seconds; it glows a different color based on the curse. Knockback: Red. Strength: Orange. Weakness: Blue. Fear: Pink. Vulnerability: White. Slowness: Yellow.', icon: ICON },
-            { name: 'Flight', description: 'Asher lifts herself off the ground and takes flight for about 10 seconds. She moves slightly slower as she ascends. While airborne she can use all of her abilities, and can also use Scythe Throw mid-air.', icon: ICON },
-            { name: 'Summon', description: 'Details not documented in the source PDF.', icon: ICON }
-        ]
-    },
-
-    'SashaRose': {
-        passives: [],
-        abilities: [
-            { name: 'Staff Summon', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Lunge', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'SpellBook', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Potion of ???', description: 'Details not documented in the source PDF.', icon: ICON }
-        ]
-    },
-
-    'Sutekina': {
-        passives: [],
-        abilities: [
-            { name: 'Cheer', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Panel (3 Abilities)', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Pop-Ups', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Locate', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Teleport', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Charm Radius', description: 'Details not documented in the source PDF.', icon: ICON }
-        ]
-    },
-
-    'Evadare/Kontos': {
-        passives: [],
-        abilities: [
-            { name: "Round A' Bout", description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Taunt + Parry', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Mach 5', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Pizza', description: 'Details not documented in the source PDF.', icon: ICON }
-        ]
-    },
-
-    '2020x (Survivor)': {
-        passives: [],
-        abilities: [
-            { name: 'Not So Magic Trick', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Nothing', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Slate Armor', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'The Invisi Cloak', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Glider', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Battle Ready', description: 'Details not documented in the source PDF.', icon: ICON }
-        ]
-    },
-
-    'BreadMan': {
-        passives: [],
-        abilities: [
-            { name: 'Flame Spin', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Blazing Rushdown', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Flash Step', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Block', description: 'Details not documented in the source PDF.', icon: ICON }
-        ]
-    },
-
-    'SpaceHog': {
-        passives: [],
-        abilities: [
-            { name: 'Charge', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'DropKick', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Jet Boost', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Repair', description: 'Requires Cosmic or Ashline. Details not documented in the source PDF.', icon: ICON }
-        ]
-    },
-
     'Drowsey': {
-        passives: [],
+        passives: [
+            { name: 'Droid-27 (HP Modifier)', description: 'Drowsey has specialized plating that absorbs some impacts, reducing most damage by 8%. Panel HP absorbs an additional 12% on top of the 8%. Panel HP can recover after 10s away from chase, or 45s if it was broken previously. If you have 1 Panel HP and get hit for more damage than the panel hp has, the damage does not carry over to base health.' },
+            { name: 'Visual Data', description: 'Drowsey views the world through a computer-like interface. All visible players are marked with circular indicators. Survivors: neutral indicators. Killer: red indicator.' }
+        ],
         abilities: [
-            { name: 'Rework Pending', description: 'Status: Expecting a rework... [LO4D1N9...]', icon: ICON }
+            { name: 'Melodic Mending', description: 'Drowsey will play his boombox and become stationary. His heal pool is a base of 30 (+2 for every additional survivor). He heals all survivors within the radius, splitting the heal pool evenly between anyone within the radius. Lasts for 12s. CD: 45s.', icon: ICON },
+            { name: 'Unstable Recognition', description: 'Drowsey will attempt to hit the killer with his boombox with a far lunge. However, in order to do this, he has to trick himself. It takes a few moments to recognize the killer as an Object instead of an entity. After tricking himself, he will swing full force to hit the killer, taking 20 base health damage if he lands it and 15 to himself if he misses. Stuns the killer for 8s and breaks his boombox. CD: 60s.', icon: ICON },
+            { name: 'Repair', description: 'If Drowsey\'s boombox is broken, you gain the option to repair. Keep in mind repairing the boombox takes 20 panel HP from Drowsey and it takes 12s to repair in total. CD: 45s.', icon: ICON }
+        ]
+    },
+    'BreadMan': {
+        passives: [
+            { name: 'Quick Moves', description: 'When flash stepping during LMS, BreadMan causes Burning III for 5 seconds and Slowness II for 5 seconds.' },
+            { name: 'Blazing Cleave', description: 'When mid-air using Blaze Rush, BreadMan will swing down instead of forward.' },
+            { name: 'Flame Trail Of Victory', description: 'Using Flame Spin during LMS, BreadMan will no longer wind it up before spinning. Attacking a killer with it will lock one ability for 4 seconds, and burn them for longer.' }
+        ],
+        abilities: [
+            { name: 'Flame Spin', description: 'Bread winds up his sword setting it ablaze before spinning rapidly for 5 seconds. Gives him a speed boost as he spins. If landed on a killer, will set them on fire for 3 seconds [can be blocked/clashed]. Stun duration: 3s. Fire slows down killers and extends the stun further (ex: 4 seconds).', icon: ICON },
+            { name: 'Blaze Rush', description: 'Bread quickly rushes forward and slashes his flame sword. Once it hits a killer, will set them on fire for 4 seconds [can be blocked/clashed]. Stun duration: 5s.', icon: ICON },
+            { name: 'Flash Step', description: 'Bread moves left and right quickly and phases through a killer. Will give Slowness I for 5 seconds.', icon: ICON }
+        ]
+    },
+    'Silly.Tiff': {
+        passives: [
+            { name: 'Overclock', description: 'Silly\'s force field has a shorter cooldown during LMS (40 - 20s). Bomb\'s CD reduces to 20 after BreadMan/Smile\'s deaths.' }
+        ],
+        abilities: [
+            { name: 'Shield', description: 'Silly brings out a device that activates a force field around her for 7 seconds. If she\'s hit, the force field will start to lose HP. Once the shield breaks, Silly will gain a speed boost for 5 seconds.', icon: ICON },
+            { name: 'Shield Give', description: 'Silly can give her force field to others. But the force field breaks if anything attacks it. Other survivors will NOT get a speed boost after the force field is broken. CD: 40s.', icon: ICON },
+            { name: 'Bomb', description: 'Silly throws a bomb that ticks 2 seconds before exploding. Once it explodes, it has a radius of 20 studs. If it hits a killer, will knock them back 10 studs and stun them. Stun duration: 6s. CD: 30s.', icon: ICON },
+            { name: 'Roll', description: 'Silly rolls onto the ground and can avoid being attacked. CD: 25s.', icon: ICON }
+        ]
+    },
+    'Ashline Dasher': {
+        passives: [
+            { name: 'Scythe Attack (Bleed)', description: 'Scythe Attack can give killers Bleeding I for 3 seconds.' },
+            { name: 'Adrenaline', description: 'Ashline has pure adrenaline once all her friends are dead. Fly can be used longer (6 - 8 seconds) and its cooldown is reduced to 6 seconds.' }
+        ],
+        abilities: [
+            { name: 'Scythe Attack', description: 'Ash swings her scythe which stuns killers [Can be Blocked]. Stun duration: 4 seconds. CD: 35s.', icon: ICON },
+            { name: 'Scythe Throw', description: 'Ash aims her scythe (camera or mouse). If missed, the scythe will automatically come back 3 seconds after thrown. Can stun [Can be blocked]. Stun duration: 3 seconds. CD: 30s.', icon: ICON },
+            { name: 'Fly', description: 'Ash lifts herself up and can hover/fly around for 3 seconds. CD: 13.7s. (A bar will show up on the side of Ash\'s icon).', icon: ICON }
+        ]
+    },
+    'Sasha Rose': {
+        passives: [
+            { name: 'One Blessed Soul', description: 'Sasha\'s attacks heal 5 HP if landed.' }
+        ],
+        abilities: [
+            { name: 'Beam Spread', description: 'Sasha shoots 3 purple beams (towards camera or mouse) that sets killers on fire for 4 seconds. (Unblockable.) Stun duration: 2s. CD: 35s.', icon: ICON },
+            { name: 'Support Blast', description: 'Sasha shoots a charge of energy at teammates which gives them overhealth +40 health. Teammates also receive a speed boost for 2 seconds. CD: 30s.', icon: ICON },
+            { name: 'Lunge', description: 'Sasha lunges forward with her staff. If that attack lands on killers, it will knock them back and stun them for a moment. Missing the attack will increase the cooldown of the first 2 abilities. If used mid-air, Sasha will smash down with her staff, stunning killers within her vicinity. CD: 30s.', icon: ICON }
+        ]
+    },
+    'Lovely': {
+        passives: [
+            { name: 'Self Revive', description: 'Lovely can self revive herself.' },
+            { name: 'Get Hacked XD', description: 'Lovely\'s Cheer buffs herself during LMS. (Teleport Further).' }
+        ],
+        abilities: [
+            { name: 'Cheer', description: 'Lovely raises her arms and cheers on one of her teammates to buff their abilities. Reduces CDs and adds +1 sec stun time if the teammate has a stun. When Lovely cheers one of her teammates, she is immune to attacks for 4 seconds. (Survivors with her buff will have a heart near their icon.) CD: 17s. Buff time: 30 seconds.', icon: ICON },
+            { name: 'Main Frame', description: 'Lovely will open up a device which floats near her. This will give her Slowness 2 until the ability is complete. During the start up everyone will highlight. Clicking on Killers will glitch their screen for 4 seconds and set one ability on CD. Using on survivors will give them a speed boost and highlight the killer for 10 seconds for the survivor she has clicked on. CD: 35s.', icon: ICON },
+            { name: 'Speed Ring', description: 'Lovely spawns a circle around her which gives her and other survivors Speed III temporarily as long as they are around her. Killers who attack Lovely while her circle is active will suffer Slowness II for 1.5 seconds after attacking. The circle disappears after 10 seconds. CD: 40s.', icon: ICON }
         ]
     },
 
     // ==================== TORMENTORS ====================
-
     '2020x The Jester': {
         passives: [
-            { name: 'Unstoppable (Partial)', description: '2020x cannot be stunned for longer than 2 seconds — this does not count if she is being stun-chained or hit with a fully charged or buffed stun.' },
-            { name: 'My World, MY RULES', description: '2020x views the world in a red tint. When she is closer to Cosmic, Smile, BreadMan, or SpaceHog, her screen becomes staticy.' },
-            { name: 'No Fun', description: 'During escape time, 2020x\'s face and animations change to show how tired she gets from running around so much.' },
-            { name: 'FUN', description: 'When only 2 Survivors remain, 2020x\'s face changes into an open smile (like the render).' }
+            { name: 'Unstoppable', description: '2020x can\'t be stunned for longer than 2 seconds. (Gains speed boost after stun for 4 seconds.)' }
         ],
         abilities: [
-            { name: 'Aerial Saw Slam', description: '2020x slams her saw into the ground while airborne, stopping her for about 2 seconds. If landed on an unsuspecting Survivor, they ragdoll and suffer heavy bleed. (Base DMG: 40)', icon: ICON },
-            { name: 'Blade Throw', description: '2020x throws her blade forward. A hit Survivor suffers slowness and heavy bleed for 3 seconds. (CD: 30s) Alt — Blade Carousel: After the blade hits, 2020x teleports to the Survivor and summons 3 saws that circle around them. The saws show an indicator before striking. A Survivor hit by any saw suffers slowness, bleed, and is temporarily blinded by 2020x for 10 seconds.', icon: ICON },
-            { name: 'Block', description: '2020x raises both hands to her face, blocking any incoming attacks for 3 seconds. Survivors that attempt to stun her during this are blinded and hear her laughing at them for 5 seconds.', icon: ICON },
-            { name: 'Never See Me Coming', description: '2020x fades into nothingness and teleports to a random Survivor. The Survivor hears her laugh faintly before she appears and attempts a silent attack. (Survivors must jump to avoid being ragdolled.) Fake Out — there is a chance 3 copies of 2020x spawn around the Survivor, forcing one of three random minigames (jump the attack, stand still, or press a button at the right time). Failing the minigame blinds and ragdolls the Survivor for longer. (CD: 20s)', icon: ICON },
-            { name: 'Rushdown', description: '2020x stops and charges her saw for 4 seconds (laughing the whole time), then dashes at high speed for about 5 seconds. Survivors caught are grabbed and forced to spam space bar / tap the screen. If 2020x wins the minigame she kicks the Survivor over and slashes twice for 45 DMG. If she loses, she is knocked back and loses this ability for a minute. (CD: 40s)', icon: ICON }
+            { name: 'Will of Revenge', description: '2020x charges her saw for 3 seconds while laughing. Once charged she rushes survivors. If a survivor is caught she will knock them over and saw at them. (Deals bleeding for 4 seconds.) Deals 40 DMG. CD: 35s.', icon: ICON },
+            { name: 'Did I Scare You?', description: '2020x laughs and appears behind 3 random survivors. (2 are fake.) Survivors will have to press 3 random keys in order to avoid being injured. If the keys aren\'t pressed, 2020x will strike the user in the face with her saw. (K, O or L) (Tap the saw on the screen.) (Deals 20 DMG if landed.) (Blinds Survivors for 4s) (Bleeding II for 5s). CD: 55s.', icon: ICON },
+            { name: 'Peekaboo', description: 'Highlights all survivors for 8 seconds. 2020x slows down and is immune during this and cannot be stunned for 2 seconds. CD: 25.7s.', icon: ICON },
+            { name: 'Block', description: '2020x holds her saw in front of her face. Can block attacks. Survivors that stun her will suffer a slash. (Bloodies the survivor\'s screen and gives bleed.)', icon: ICON }
         ]
     },
-
     'Smoky The Demon': {
+        passives: [
+            { name: 'Rage Meter', description: 'While Smoky gets stunned, it slowly fills his rage meter. His icon will slowly get darker the more he is stunned. Once filled, Smoky will go completely black and will turn the map dark for survivors. (M1 DMG increased to 28 - 48) (Leap is Faster) (Speed Increased to 20 - 50). CD: Can only be used once.' }
+        ],
+        abilities: [
+            { name: 'Punch', description: 'Smoky punches dealing 28 DMG.', icon: ICON },
+            { name: 'COME HERE', description: 'Smoky yells "COME HERE" and reaches his arms out to grab survivors. Once a survivor is grabbed, he will pull them in and rapidly punch them, dealing 35 DMG total. (Survivors are ragdolled for 2 seconds) (Smoky is endlagged for 3 seconds.) CD: 27s.', icon: ICON },
+            { name: 'Leap', description: 'Smoky leaps into the air and can aim where he lands. Once he lands he will slam himself down. Dealing knockback and 35 DMG. Killing survivors with this move activates a different kill animation, which pays you back with additional +5 seconds to the timer. (40 seconds when killing survivors). CD: 35s.', icon: ICON },
+            { name: 'Spikes', description: 'Smoky screams and then spawns spikes in his radius. If a spike hits, a survivor will get Bleeding I for 5 seconds and Slowness for 2 seconds. DMG total: 15. CD: 20s.', icon: ICON }
+        ]
+    },
+    'Rozetti The Spider': {
         passives: [],
         abilities: [
-            { name: 'Slash (x2)', description: 'Smoky slashes at Survivors in a two-hit combo.', icon: ICON },
-            { name: 'GET OVER HERE', description: 'Smoky reaches out and yanks a Survivor toward him.', icon: ICON },
-            { name: 'Shockwave', description: 'Smoky releases a wide shockwave.', icon: ICON },
-            { name: 'Take Flight / Dunk', description: 'Smoky takes to the air, and can slam down with a Dunk attack.', icon: ICON },
-            { name: 'Spike Field', description: 'Smoky raises a field of spikes.', icon: ICON },
-            { name: 'Eyes of the Darkness', description: 'Grants Speed + DMG increase. (DMG: 55, Speed: +25) Also grants Seek Them, which activates Rage Mode.', icon: ICON },
-            { name: 'Slash (x3)', description: 'Rage-mode version of Slash — a three-hit combo.', icon: ICON },
-            { name: 'Spike Grasp', description: 'Smoky grabs a Survivor with spikes.', icon: ICON },
-            { name: 'Leap', description: 'Smoky leaps toward a target.', icon: ICON },
-            { name: 'Ravenge', description: 'Details not documented in the source PDF.', icon: ICON }
+            { name: 'Slash', description: 'Rozetti slashes with her vine and deals 20 DMG. (Causes poison for 3 seconds). CD: 2.5s.', icon: ICON },
+            { name: 'Vine Burst', description: 'While Rosetti is stunned (or not), she will close her spider legs in and then burst out, causing spikes to fly everywhere dealing 20 DMG and applying poison on anyone in the radius of her burst. CD: 29s.', icon: ICON },
+            { name: 'Thorned Trap', description: 'Rozetti reaches into the ground, forming a thorn trap. The trap will be barely visible to survivors. (Highlighted Yellow for her.) Survivors that touch the trap will become stuck and have to mash space or rapidly tap their screen to break free. (Rozetti gains a speed boost for 3 seconds.) (Survivors take +5 DMG the longer they stay trapped.) CD: 20s.', icon: ICON },
+            { name: 'Death Do Us Apart', description: 'Rosetti will slow down and then summon an eye covered in thorns. The eyeball will disable survivors\' abilities and slow them down while they are near it. Rosetti can place up to 3 of them. The eyes contain a bar that fills the longer survivors are near it. While the bar is full and survivors are near it, Rosetti gains a 10% speed boost and DMG for as long as the bar is full. CD: 34s.', icon: ICON }
         ]
     },
-
+    'SpaceHog The ShapeShifter': {
+        passives: [
+            { name: 'Death Mark', description: 'Once Spacehog is below 100 HP, one survivor will be randomly picked to get a death mark on them. This permanently darkens their screen and that survivor takes 50 DMG per attack. (Doesn\'t affect other abilities.)' }
+        ],
+        abilities: [
+            { name: 'Jab', description: 'Spacehog jabs survivors with his knife. Dealing Bleeding III for 2 seconds. DMG: 20. {Automatically highlight survivors for 3 seconds every hit.}', icon: ICON },
+            { name: 'Shear Force', description: 'Spacehog\'s arm raises up then slams down into the ground. His skin begins to melt into the floor, creating a spawn point for him to use for later. (Can place 4 MAX). When exiting a puddle, survivors near it will be blinded and will take 5 DMG. CD: 20s.', icon: ICON },
+            { name: 'ShapeShift', description: 'Spacehog can select a survivor to turn into. Once he spawns as a survivor he will have bloodshot eyes and an unnerving smile on their face. If Spacehog hits survivors while shapeshifted, it will deal 10 DMG per hit. (When stunned will exit the shapeshift.) CD: 45s.', icon: ICON },
+            { name: 'Explode', description: 'Spacehog explodes into a puddle causing blindness for 4 seconds and ragdolling survivors for about 6 seconds, and dealing 20 DMG. He then spawns at the killer spawn again. (Suffers no endlag.) CD: 30s.', icon: ICON },
+            { name: 'Rapid Slash', description: 'Spacehog rapidly swings his knife for 5 seconds and gains a speed boost for 5 seconds.', icon: ICON }
+        ]
+    },
     'NMercy The Mutated Corpse': {
         passives: [
             { name: 'Block (Multiple)', description: 'NMercy can block multiple attacks. He grows stronger with each stun landed.' }
         ],
         abilities: [
-            { name: 'Scratch', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Pounce', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Haunting Presence', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Awaken the Cast', description: 'Summons minions (Ravyaka, Rage, RedKing).', icon: ICON },
-            { name: 'Bash', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Grab', description: 'Details not documented in the source PDF.', icon: ICON }
-        ]
-    },
-
-    'Rosetti The Spider': {
-        passives: [],
-        abilities: [
-            { name: 'Vine Swing', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Web Trap', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Spider Swarm', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Infested', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Grab', description: 'Details not documented in the source PDF.', icon: ICON },
-            { name: 'Queen of Spiders', description: 'Spawns 3 spiders.', icon: ICON }
+            { name: 'Pounce', description: 'NMercy pounces towards survivors. If he catches them he will grab them and throw them to the floor (causing blindness). After he will ram his claws into their chest twice before grabbing them and throwing them a few studs away. (Deals 45 DMG Total). CD: 35.5s.', icon: ICON },
+            { name: 'Spiritual Presence', description: 'NMercy floats slightly into the air and becomes invisible for 25 seconds. Highlights all survivors for 10 seconds or until the move is cancelled. Once a survivor is found, NMercy knocks them over and laughs at them. {Acts as end lag for both NMercy and Survivors.} {Survivors get scared and cannot use moves for 3 seconds.} CD: 25s.', icon: ICON },
+            { name: 'Grab', description: 'NMercy lunges forward and grabs survivors by the neck. Survivors gain blindness as their health gets lower. (NMercy can be stunned out of it.) NMercy can cancel the grab by punching the survivor out of his hands. (Disabling survivor abilities for 5 seconds and causing blindness.) DMG per sec: 2. DMG from punch: 30. DMG per sec if losing: 5. CD: 30s.', icon: ICON }
         ]
     }
 };
