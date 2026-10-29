@@ -132,23 +132,41 @@ function createFolderTexture(name) {
 
 function create3DFolder(charData, x, z) {
     const group = new THREE.Group();
-    group.position.set(x, 0.02, z);
+    // 1. Position it on the table
+    group.position.set(x, 0.02, z); 
+    
+    // 2. THIS IS THE FIX: Rotate it to lie flat (-90 degrees on X axis)
+    group.rotation.x = -Math.PI / 2; 
+    
     group.userData = charData;
 
-    const back = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.6, 0.02), new THREE.MeshStandardMaterial({ color: 0xcbb58d, roughness: 0.9 }));
-    back.receiveShadow = true; back.castShadow = true;
+    // Back cover
+    const back = new THREE.Mesh(
+        new THREE.BoxGeometry(1.2, 1.6, 0.02), 
+        new THREE.MeshStandardMaterial({ color: 0xcbb58d, roughness: 0.9 })
+    );
+    back.receiveShadow = true; 
+    back.castShadow = true;
     group.add(back);
 
-    const paper = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.5), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 }));
-    paper.position.z = 0.011;
+    // Paper inside
+    const paper = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.1, 1.5), 
+        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 })
+    );
+    paper.position.z = 0.011; // Slightly above the back cover
     group.add(paper);
 
+    // Front Cover (The Hinge)
     const frontGroup = new THREE.Group();
-    frontGroup.position.set(-0.6, 0, 0.02); 
+    frontGroup.position.set(-0.6, 0, 0.02); // Hinge on the left edge
     group.add(frontGroup);
 
-    const front = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.6, 0.02), new THREE.MeshStandardMaterial({ map: createFolderTexture(charData.name), roughness: 0.9 }));
-    front.position.x = 0.6;
+    const front = new THREE.Mesh(
+        new THREE.BoxGeometry(1.2, 1.6, 0.02), 
+        new THREE.MeshStandardMaterial({ map: createFolderTexture(charData.name), roughness: 0.9 })
+    );
+    front.position.x = 0.6; // Offset so it pivots on the left
     front.castShadow = true;
     front.userData.isFolderFront = true;
     front.userData.parentGroup = group;
