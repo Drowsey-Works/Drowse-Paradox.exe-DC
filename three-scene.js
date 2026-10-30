@@ -23,7 +23,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.72;    // CHANGED: was 1.0 — halves overall brightness
+renderer.toneMappingExposure = 0.55;
 
 // ==========================================
 // 2. LIGHTING
@@ -36,7 +36,7 @@ lampLight.angle = Math.PI / 3;
 lampLight.penumbra = 0.8;
 lampLight.castShadow = true;
 lampLight.distance = 12;
-lampLight.decay = 2.2;                  // CHANGED: was 2.0 — sharper falloff
+lampLight.decay = 2.2;
 scene.add(lampLight);
 
 const lampTarget = new THREE.Object3D();
@@ -44,7 +44,7 @@ lampTarget.position.set(0, 0, -1);
 scene.add(lampTarget);
 lampLight.target = lampTarget;
 
-// HDR bulb color for bloom (bright enough to bloom at threshold 1.2, but tiny)
+// HDR bulb color for bloom (bright enough to bloom at threshold 1.2)
 const HDR_BULB = new THREE.Color().setRGB(3, 2.4, 1.4, THREE.LinearSRGBColorSpace);
 
 const bulb = new THREE.Mesh(
@@ -55,7 +55,7 @@ bulb.position.copy(LAMP_POS);
 bulb.scale.setScalar(1.4);
 scene.add(bulb);
 
-scene.add(new THREE.AmbientLight(0x110800, 0.08));  // CHANGED: was 0x221100, 0.1
+scene.add(new THREE.AmbientLight(0x110800, 0.08));
 
 const rimCool = new THREE.DirectionalLight(0x88aaff, 0.35);
 rimCool.position.set(-4, 1.5, -5);
@@ -65,7 +65,7 @@ const rimWarm = new THREE.DirectionalLight(0xff9955, 0.28);
 rimWarm.position.set(4, 2, -4);
 scene.add(rimWarm);
 
-const frontFill = new THREE.DirectionalLight(0xffd5a0, 0.18);  // CHANGED: was 0.15
+const frontFill = new THREE.DirectionalLight(0xffd5a0, 0.12);
 frontFill.position.set(0, 2.5, 5);
 scene.add(frontFill);
 
@@ -109,6 +109,31 @@ cord.position.y = 0.24 + cordLen / 2;
 lampGroup.add(cord);
 
 // ==========================================
+// 2c. CURSOR FLASHLIGHT
+// ==========================================
+// Small warm spot that follows the mouse, aimed at the binder plane.
+// Only active in table mode — fades in when shelf is ready, fades out otherwise.
+
+const cursorLight = new THREE.SpotLight(0xffe8c8, 0);
+cursorLight.position.copy(camera.position);
+cursorLight.angle = 0.18;
+cursorLight.penumbra = 0.9;
+cursorLight.distance = 8;
+cursorLight.decay = 1.2;
+cursorLight.castShadow = false;
+scene.add(cursorLight);
+
+const cursorLightTarget = new THREE.Object3D();
+cursorLightTarget.position.set(0, 0.9, -1);
+scene.add(cursorLightTarget);
+cursorLight.target = cursorLightTarget;
+
+// Reusable raycast helpers for the flashlight (NOT the click raycaster)
+const cursorRay = new THREE.Raycaster();
+const cursorPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 1); // z = -1 (binder plane)
+const cursorHitPoint = new THREE.Vector3();
+
+// ==========================================
 // 3. PROPS (Desk & Eyes)
 // ==========================================
 const canvasWood = document.createElement('canvas');
@@ -139,7 +164,6 @@ scene.add(leftEye, rightEye);
 // 3b. VOLUMETRIC LAMP CONE
 // ==========================================
 const coneHeight = LAMP_POS.distanceTo(lampTarget.position);
-// CHANGED: much narrower (0.35, 1.1 instead of 0.45, 1.85) so it hugs the box
 const coneGeo = new THREE.CylinderGeometry(0.35, 1.1, coneHeight, 32, 1, true);
 
 const coneMat = new THREE.ShaderMaterial({
@@ -179,7 +203,7 @@ const coneMat = new THREE.ShaderMaterial({
     transparent: true,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
-    side: THREE.FrontSide,                // CHANGED: was DoubleSide — halves the cone's brightness
+    side: THREE.FrontSide,
     fog: false
 });
 
@@ -231,7 +255,7 @@ const dust = (() => {
         map: dustTex,
         color: 0xffd7a0,
         transparent: true,
-        opacity: 0.7,                    // CHANGED: was 0.55 — compensate for exposure drop
+        opacity: 0.7,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         sizeAttenuation: true,
@@ -263,7 +287,6 @@ function updateDust(t) {
 // ==========================================
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-// CHANGED: strength 1.5 → 0.35, threshold 0.85 → 1.2, radius 0.4 → 0.3
 composer.addPass(new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
     0.35, 0.3, 1.2
@@ -491,7 +514,7 @@ function createBinder(charData, x, y, z) {
 
     const pages = new THREE.Mesh(
         new RoundedBoxGeometry(BINDER_WIDTH - 0.06, BINDER_HEIGHT - 0.06, 0.08, 3, 0.005),
-        new THREE.MeshStandardMaterial({ color: 0xd4cbb0, roughness: 0.92 }) // CHANGED: was 0xf0e8d0 — less reflective cream
+        new THREE.MeshStandardMaterial({ color: 0xd4cbb0, roughness: 0.92 })
     );
     pages.castShadow = true;
     pages.receiveShadow = true;
@@ -774,6 +797,18 @@ function animate() {
 
     isCameraAtTable = isTableMode && camera.position.distanceTo(targetCameraPos) < 0.15;
 
+    // Cursor flashlight — fade in/out + track mouse ray
+    const cursorTargetIntensity = (isTableMode && isCameraAtTable) ? 2.0 : 0;
+    cursorLight.intensity += (cursorTargetIntensity - cursorLight.intensity) * 0.08;
+
+    if (cursorLight.intensity > 0.01) {
+        cursorLight.position.copy(camera.position);
+        cursorRay.setFromCamera(mouse, camera);
+        if (cursorRay.ray.intersectPlane(cursorPlane, cursorHitPoint)) {
+            cursorLightTarget.position.copy(cursorHitPoint);
+        }
+    }
+
     updateHoverPullout();
 
     const blink = Math.sin(time * 0.5) > 0.98 ? 0.1 : 1;
@@ -804,9 +839,9 @@ setTimeout(() => {
     const flicker = setInterval(() => {
         if (flickers > 12) {
             clearInterval(flicker);
-            lampLight.intensity = 3.0;                       // CHANGED: was 5
-            bulb.material.color.copy(HDR_BULB);              // CHANGED: HDR bulb
-            coneMat.uniforms.uOpacity.value = 0.025;         // CHANGED: was 0.09
+            lampLight.intensity = 2.0;
+            bulb.material.color.copy(HDR_BULB);
+            coneMat.uniforms.uOpacity.value = 0.025;
 
             setTimeout(() => {
                 setCameraState('INTRO_DOWN');
@@ -819,13 +854,13 @@ setTimeout(() => {
             }, 500);
             return;
         }
-        lampLight.intensity = Math.random() > 0.4 ? 3.0 : 0; // CHANGED: was 5
+        lampLight.intensity = Math.random() > 0.4 ? 2.0 : 0;
         if (lampLight.intensity > 0) {
             bulb.material.color.copy(HDR_BULB);
         } else {
             bulb.material.color.setHex(0x000000);
         }
-        coneMat.uniforms.uOpacity.value = lampLight.intensity > 0 ? 0.025 : 0.0; // CHANGED: was 0.09
+        coneMat.uniforms.uOpacity.value = lampLight.intensity > 0 ? 0.025 : 0.0;
         flickers++;
     }, 100);
 }, 500);
