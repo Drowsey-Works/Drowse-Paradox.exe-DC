@@ -26,34 +26,14 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.55;
 
 // ==========================================
-// 2. LIGHTING
+// 2. LIGHTING CONSTANTS
 // ==========================================
 const LAMP_POS = new THREE.Vector3(0, 3, -1);
+const LAMP_INTENSITY = 2.5;
+const LAMP_BASE_CONE_OPACITY = 0.03;
 
-const lampLight = new THREE.SpotLight(0xffcc88, 0);
-lampLight.position.copy(LAMP_POS);
-lampLight.angle = Math.PI / 3;
-lampLight.penumbra = 0.8;
-lampLight.castShadow = true;
-lampLight.distance = 12;
-lampLight.decay = 2.2;
-scene.add(lampLight);
-
-const lampTarget = new THREE.Object3D();
-lampTarget.position.set(0, 0, -1);
-scene.add(lampTarget);
-lampLight.target = lampTarget;
-
-// HDR bulb color for bloom (bright enough to bloom at threshold 1.2)
 const HDR_BULB = new THREE.Color().setRGB(3, 2.4, 1.4, THREE.LinearSRGBColorSpace);
-
-const bulb = new THREE.Mesh(
-    new THREE.SphereGeometry(0.1),
-    new THREE.MeshBasicMaterial({ color: 0x000000 })
-);
-bulb.position.copy(LAMP_POS);
-bulb.scale.setScalar(1.4);
-scene.add(bulb);
+const BULB_OFF = new THREE.Color(0x000000);
 
 scene.add(new THREE.AmbientLight(0x110800, 0.08));
 
@@ -70,11 +50,19 @@ frontFill.position.set(0, 2.5, 5);
 scene.add(frontFill);
 
 // ==========================================
-// 2b. LAMP MODEL
+// 2b. LAMP — pivot hierarchy for pendulum sway
 // ==========================================
+// Pivot sits at the top of the cord. Rotating it swings the entire lamp assembly
+// (shade, cord, bulb, light, target, volumetric cone) as a physical pendulum.
+const CORD_TOP_Y = LAMP_POS.y + 4;
+const lampPivot = new THREE.Group();
+lampPivot.position.set(LAMP_POS.x, CORD_TOP_Y, LAMP_POS.z);
+scene.add(lampPivot);
+
+// lampGroup hangs down so its origin lands at LAMP_POS when pivot is unrotated
 const lampGroup = new THREE.Group();
-lampGroup.position.copy(LAMP_POS);
-scene.add(lampGroup);
+lampGroup.position.set(0, LAMP_POS.y - CORD_TOP_Y, 0); // -4
+lampPivot.add(lampGroup);
 
 const shadeHeight = 0.55;
 const shadeGeo = new THREE.CylinderGeometry(0.08, 0.55, shadeHeight, 40, 1, true);
@@ -100,20 +88,43 @@ ring.position.y = 0.24;
 ring.rotation.x = Math.PI / 2;
 lampGroup.add(ring);
 
-const cordLen = 4;
+// Cord from top of shade up to the pivot
+const cordLength = CORD_TOP_Y - LAMP_POS.y - 0.24; // reaches pivot exactly
 const cord = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.014, 0.014, cordLen, 8),
+    new THREE.CylinderGeometry(0.014, 0.014, cordLength, 8),
     brassMat
 );
-cord.position.y = 0.24 + cordLen / 2;
+cord.position.y = 0.24 + cordLength / 2;
 lampGroup.add(cord);
 
-// ==========================================
-// 2c. CURSOR FLASHLIGHT
-// ==========================================
-// Small warm spot that follows the mouse, aimed at the binder plane.
-// Only active in table mode — fades in when shelf is ready, fades out otherwise.
+// Bulb — child of lampGroup so it swings
+const bulb = new THREE.Mesh(
+    new THREE.SphereGeometry(0.1),
+    new THREE.MeshBasicMaterial({ color: 0x000000 })
+);
+bulb.position.set(0, 0, 0);
+bulb.scale.setScalar(1.4);
+lampGroup.add(bulb);
 
+// Light — child of lampGroup
+const lampLight = new THREE.SpotLight(0xffcc88, 0);
+lampLight.position.set(0, 0, 0);
+lampLight.angle = Math.PI / 2.2;        // was Math.PI / 3 — wider cone covers more desk
+lampLight.penumbra = 0.85;
+lampLight.castShadow = true;
+lampLight.distance = 12;
+lampLight.decay = 1.9;                  // was 2.2 — more reach to the desk edges
+lampGroup.add(lampLight);
+
+// Target — child of lampGroup, 3 units straight down
+const lampTarget = new THREE.Object3D();
+lampTarget.position.set(0, -3, 0);
+lampGroup.add(lampTarget);
+lampLight.target = lampTarget;
+
+// ==========================================
+// 2c. CURSOR FLASHLIGHT (unchanged)
+// ==========================================
 const cursorLight = new THREE.SpotLight(0xffe8c8, 0);
 cursorLight.position.copy(camera.position);
 cursorLight.angle = 0.18;
@@ -128,9 +139,8 @@ cursorLightTarget.position.set(0, 0.9, -1);
 scene.add(cursorLightTarget);
 cursorLight.target = cursorLightTarget;
 
-// Reusable raycast helpers for the flashlight (NOT the click raycaster)
 const cursorRay = new THREE.Raycaster();
-const cursorPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 1); // z = -1 (binder plane)
+const cursorPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 1);
 const cursorHitPoint = new THREE.Vector3();
 
 // ==========================================
@@ -161,10 +171,10 @@ rightEye.position.set(0.15, 1.5, -4);
 scene.add(leftEye, rightEye);
 
 // ==========================================
-// 3b. VOLUMETRIC LAMP CONE
+// 3b. VOLUMETRIC LAMP CONE — child of lampGroup
 // ==========================================
-const coneHeight = LAMP_POS.distanceTo(lampTarget.position);
-const coneGeo = new THREE.CylinderGeometry(0.35, 1.1, coneHeight, 32, 1, true);
+const coneHeight = 3;
+const coneGeo = new THREE.CylinderGeometry(0.35, 1.6, coneHeight, 32, 1, true);
 
 const coneMat = new THREE.ShaderMaterial({
     uniforms: {
@@ -208,21 +218,12 @@ const coneMat = new THREE.ShaderMaterial({
 });
 
 const lampCone = new THREE.Mesh(coneGeo, coneMat);
+lampCone.position.set(0, -coneHeight / 2, 0);
 lampCone.raycast = () => {};
-{
-    const mid = LAMP_POS.clone().add(lampTarget.position).multiplyScalar(0.5);
-    const dir = lampTarget.position.clone().sub(LAMP_POS).normalize();
-    const q = new THREE.Quaternion().setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0),
-        dir.clone().negate()
-    );
-    lampCone.position.copy(mid);
-    lampCone.quaternion.copy(q);
-}
-scene.add(lampCone);
+lampGroup.add(lampCone);
 
 // ==========================================
-// 3c. DUST PARTICLES
+// 3c. DUST PARTICLES (unchanged)
 // ==========================================
 const dust = (() => {
     const COUNT = 380;
@@ -771,6 +772,11 @@ window.addEventListener('click', (event) => {
 let time = 0;
 const clock = new THREE.Clock();
 
+// Lamp flicker state (activated after intro settles)
+let lampSettled = false;
+let nextFlickerAt = 0;
+let flickerEndAt = 0;
+
 function updateHoverPullout() {
     for (const binder of currentFolders) {
         if (binder === activeFolder) continue;
@@ -782,6 +788,41 @@ function updateHoverPullout() {
 
         binder.position.z = binder.userData.shelfPosition.z + binder.userData.pullOut;
     }
+}
+
+function updateLampSwayAndFlicker(elapsed) {
+    // --- Gentle pendulum sway (always active — physical object) ---
+    // Two compound sine waves per axis = irregular, organic motion
+    lampPivot.rotation.z =
+        Math.sin(elapsed * 0.55) * 0.018 +
+        Math.sin(elapsed * 1.35 + 1.7) * 0.007;
+    lampPivot.rotation.x =
+        Math.cos(elapsed * 0.50 + 0.3) * 0.014 +
+        Math.cos(elapsed * 1.10) * 0.005;
+
+    // --- Random filament flicker (only after intro settles) ---
+    if (!lampSettled) return;
+
+    // Trigger a new flicker burst when it's time
+    if (elapsed > nextFlickerAt && elapsed > flickerEndAt) {
+        flickerEndAt = elapsed + 0.08 + Math.random() * 0.3;
+        nextFlickerAt = elapsed + 4 + Math.random() * 8;
+    }
+
+    // Compute current flicker multiplier
+    let flickerMult = 1.0;
+    if (elapsed < flickerEndAt) {
+        flickerMult = Math.random() > 0.45 ? 1.0 : (0.15 + Math.random() * 0.4);
+    }
+
+    lampLight.intensity = LAMP_INTENSITY * flickerMult;
+    coneMat.uniforms.uOpacity.value = LAMP_BASE_CONE_OPACITY * flickerMult;
+    bulb.material.color.setRGB(
+        3.0 * flickerMult,
+        2.4 * flickerMult,
+        1.4 * flickerMult,
+        THREE.LinearSRGBColorSpace
+    );
 }
 
 function animate() {
@@ -797,7 +838,7 @@ function animate() {
 
     isCameraAtTable = isTableMode && camera.position.distanceTo(targetCameraPos) < 0.15;
 
-    // Cursor flashlight — fade in/out + track mouse ray
+    // Cursor flashlight
     const cursorTargetIntensity = (isTableMode && isCameraAtTable) ? 2.0 : 0;
     cursorLight.intensity += (cursorTargetIntensity - cursorLight.intensity) * 0.08;
 
@@ -810,6 +851,7 @@ function animate() {
     }
 
     updateHoverPullout();
+    updateLampSwayAndFlicker(elapsed);
 
     const blink = Math.sin(time * 0.5) > 0.98 ? 0.1 : 1;
     leftEye.scale.y = blink; rightEye.scale.y = blink;
@@ -839,9 +881,13 @@ setTimeout(() => {
     const flicker = setInterval(() => {
         if (flickers > 12) {
             clearInterval(flicker);
-            lampLight.intensity = 2.0;
+            lampLight.intensity = LAMP_INTENSITY;
             bulb.material.color.copy(HDR_BULB);
-            coneMat.uniforms.uOpacity.value = 0.025;
+            coneMat.uniforms.uOpacity.value = LAMP_BASE_CONE_OPACITY;
+
+            // Hand off control to the flicker system in the animate loop
+            lampSettled = true;
+            nextFlickerAt = clock.elapsedTime + 3 + Math.random() * 5;
 
             setTimeout(() => {
                 setCameraState('INTRO_DOWN');
@@ -854,13 +900,13 @@ setTimeout(() => {
             }, 500);
             return;
         }
-        lampLight.intensity = Math.random() > 0.4 ? 2.0 : 0;
+        lampLight.intensity = Math.random() > 0.4 ? LAMP_INTENSITY : 0;
         if (lampLight.intensity > 0) {
             bulb.material.color.copy(HDR_BULB);
         } else {
-            bulb.material.color.setHex(0x000000);
+            bulb.material.color.copy(BULB_OFF);
         }
-        coneMat.uniforms.uOpacity.value = lampLight.intensity > 0 ? 0.025 : 0.0;
+        coneMat.uniforms.uOpacity.value = lampLight.intensity > 0 ? LAMP_BASE_CONE_OPACITY : 0.0;
         flickers++;
     }, 100);
 }, 500);
