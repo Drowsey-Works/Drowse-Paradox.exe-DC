@@ -4,6 +4,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 // ==========================================
 // 1. SCENE SETUP
@@ -13,7 +14,8 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x050505);
 scene.fog = new THREE.FogExp2(0x050505, 0.05);
 
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+// Wider cinematic lens — the lamp would otherwise sit outside all camera frusta
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
 camera.position.set(0, 2, 6);
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -27,15 +29,18 @@ renderer.toneMappingExposure = 1.0;
 // ==========================================
 // 2. LIGHTING
 // ==========================================
+const LAMP_POS = new THREE.Vector3(0, 3, -2.5);
+
 const lampLight = new THREE.SpotLight(0xffcc88, 0); // Starts off for flicker
-lampLight.position.set(0, 4, 1);
+lampLight.position.copy(LAMP_POS);
 lampLight.angle = Math.PI / 3;
 lampLight.penumbra = 0.8;
 lampLight.castShadow = true;
 scene.add(lampLight);
 
 const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.1), new THREE.MeshBasicMaterial({ color: 0x000000 }));
-bulb.position.copy(lampLight.position);
+bulb.position.copy(LAMP_POS);
+bulb.scale.setScalar(1.4);
 scene.add(bulb);
 
 scene.add(new THREE.AmbientLight(0x221100, 0.1));
@@ -50,9 +55,51 @@ rimWarm.position.set(4, 2, -4);
 scene.add(rimWarm);
 
 // ==========================================
+// 2b. LAMP MODEL — shade, brass cord, brass ring
+// ==========================================
+const lampGroup = new THREE.Group();
+lampGroup.position.copy(LAMP_POS);
+scene.add(lampGroup);
+
+// Dark metal exterior + inner glow via DoubleSide
+const shadeHeight = 0.55;
+const shadeGeo = new THREE.CylinderGeometry(0.08, 0.55, shadeHeight, 40, 1, true);
+const shadeMat = new THREE.MeshStandardMaterial({
+    color: 0x1a1512,
+    metalness: 0.85,
+    roughness: 0.45,
+    side: THREE.DoubleSide,
+    envMapIntensity: 1.2
+});
+const shade = new THREE.Mesh(shadeGeo, shadeMat);
+shade.position.y = -0.05;
+shade.castShadow = true;
+lampGroup.add(shade);
+
+// Brass ring (decorative collar on top of the shade)
+const brassMat = new THREE.MeshStandardMaterial({
+    color: 0x9a7a3a,
+    metalness: 0.95,
+    roughness: 0.32
+});
+const ring = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.018, 10, 24), brassMat);
+ring.position.y = 0.24;
+ring.rotation.x = Math.PI / 2;
+lampGroup.add(ring);
+
+// Brass cord / suspension rod — hangs upward into darkness
+const cordLen = 4;
+const cord = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.014, 0.014, cordLen, 8),
+    brassMat
+);
+cord.position.y = 0.24 + cordLen / 2;
+lampGroup.add(cord);
+
+// ==========================================
 // 3. PROPS (Desk & Eyes)
 // ==========================================
-// Procedural Wood Desk
+// Procedural Wood Desk — now with beveled edges
 const canvasWood = document.createElement('canvas');
 canvasWood.width = 512; canvasWood.height = 512;
 const ctx = canvasWood.getContext('2d');
@@ -62,7 +109,7 @@ for(let i=0; i<1000; i++) {
     ctx.fillRect(Math.random() * 512, 0, Math.random() * 4, 512);
 }
 const desk = new THREE.Mesh(
-    new THREE.BoxGeometry(12, 0.2, 10),
+    new RoundedBoxGeometry(12, 0.2, 10, 4, 0.03),
     new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(canvasWood), roughness: 0.7 })
 );
 desk.position.y = -0.1;
@@ -81,15 +128,14 @@ scene.add(leftEye, rightEye);
 // ==========================================
 // 3b. VOLUMETRIC LAMP CONE  (purely cosmetic)
 // ==========================================
-const lampPos = new THREE.Vector3(0, 4, 1);
 const lightTarget = new THREE.Vector3(0, 0, 0);
-const coneHeight = lampPos.distanceTo(lightTarget);
-const coneGeo = new THREE.CylinderGeometry(0.08, 2.2, coneHeight, 32, 1, true);
+const coneHeight = LAMP_POS.distanceTo(lightTarget);
+const coneGeo = new THREE.CylinderGeometry(0.45, 2.2, coneHeight, 32, 1, true);
 
 const coneMat = new THREE.ShaderMaterial({
     uniforms: {
         uColor:    { value: new THREE.Color(0xffcc88) },
-        uOpacity:  { value: 0.0 },         // ramped up by the flicker sequence
+        uOpacity:  { value: 0.0 },
         uTime:     { value: 0.0 }
     },
     vertexShader: `
@@ -112,12 +158,9 @@ const coneMat = new THREE.ShaderMaterial({
         varying vec3 vNormal;
         varying vec3 vViewDir;
         void main() {
-            // vertical fade: brighter near lamp (uv.y = 1), fades toward desk
             float vertical = smoothstep(0.0, 0.12, vUv.y) * (0.55 + 0.45 * vUv.y);
-            // soft silhouette edge
             float rim = 1.0 - abs(dot(vNormal, vViewDir));
             float edge = 1.0 - rim * rim;
-            // barely-there shimmer
             float shimmer = 0.92 + 0.08 * sin(uTime * 1.7 + vUv.y * 9.0);
             float a = uOpacity * vertical * edge * shimmer;
             gl_FragColor = vec4(uColor, a);
@@ -131,10 +174,10 @@ const coneMat = new THREE.ShaderMaterial({
 });
 
 const lampCone = new THREE.Mesh(coneGeo, coneMat);
-lampCone.raycast = () => {}; // no-op raycast, cosmetic only
+lampCone.raycast = () => {};
 {
-    const mid = lampPos.clone().add(lightTarget).multiplyScalar(0.5);
-    const dir = lightTarget.clone().sub(lampPos).normalize();
+    const mid = LAMP_POS.clone().add(lightTarget).multiplyScalar(0.5);
+    const dir = lightTarget.clone().sub(LAMP_POS).normalize();
     const q = new THREE.Quaternion().setFromUnitVectors(
         new THREE.Vector3(0, 1, 0),
         dir.clone().negate()
@@ -162,7 +205,6 @@ const dust = (() => {
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geo.setAttribute('phase',    new THREE.BufferAttribute(phases, 1));
 
-    // soft radial sprite
     const dc = document.createElement('canvas');
     dc.width = 64; dc.height = 64;
     const dctx = dc.getContext('2d');
@@ -187,7 +229,7 @@ const dust = (() => {
     });
 
     const pts = new THREE.Points(geo, mat);
-    pts.raycast = () => {};       // never intercept clicks
+    pts.raycast = () => {};
     pts.frustumCulled = false;
     scene.add(pts);
     return { pts, geo, phases, COUNT };
@@ -216,7 +258,6 @@ composer.addPass(new UnrealBloomPass(
     1.5, 0.4, 0.85
 ));
 
-// Film grain + vignette
 const GrainVignetteShader = {
     uniforms: {
         tDiffuse:  { value: null },
@@ -237,25 +278,18 @@ const GrainVignetteShader = {
         uniform float uGrain;
         uniform float uVignette;
         varying vec2 vUv;
-
         float rand(vec2 co) {
             return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
         }
-
         void main() {
             vec4 color = texture2D(tDiffuse, vUv);
-
-            // film grain — luminance-weighted so shadows stay clean
             float lum = dot(color.rgb, vec3(0.299, 0.587, 0.114));
             float grain = rand(vUv * vec2(1920.0, 1080.0) + uTime * 60.0) - 0.5;
             color.rgb += grain * uGrain * (0.35 + lum);
-
-            // vignette
             vec2 uv = vUv - 0.5;
             float d = length(uv * vec2(1.05, 1.0));
             float vig = smoothstep(0.38, 0.85, d);
             color.rgb *= 1.0 - vig * uVignette * 0.65;
-
             gl_FragColor = color;
         }
     `
@@ -266,7 +300,7 @@ composer.addPass(grainPass);
 composer.addPass(new OutputPass());
 
 // ==========================================
-// 5. CAMERA CHOREOGRAPHY (unchanged targets, new spring physics)
+// 5. CAMERA CHOREOGRAPHY (unchanged targets, spring physics)
 // ==========================================
 let targetCameraPos = new THREE.Vector3(0, 2, 6);
 let targetLookAt = new THREE.Vector3(0, 1, -4);
@@ -278,16 +312,14 @@ let panX = 0;
 let panZ = 0;
 let panBounds = { minX: -2, maxX: 2, minZ: -2, maxZ: 2 };
 
-// --- SPRING STATE ---
 const cameraVelocity = new THREE.Vector3();
 const lookVelocity   = new THREE.Vector3();
-const SPRING_K = 12.0;   // stiffness
-const SPRING_C = 6.0;    // damping (~0.87 damping ratio: slight, cinematic overshoot)
+const SPRING_K = 12.0;
+const SPRING_C = 6.0;
 const _springDisp = new THREE.Vector3();
 const _springAccel = new THREE.Vector3();
 
 function springStep(current, target, velocity, dt) {
-    // a = -k*(x - target) - c*v
     _springDisp.copy(current).sub(target);
     _springAccel.copy(_springDisp).multiplyScalar(-SPRING_K).addScaledVector(velocity, -SPRING_C);
     velocity.addScaledVector(_springAccel, dt);
@@ -307,15 +339,12 @@ function setCameraState(stateName) {
         targetCameraPos.copy(state.pos);
         targetLookAt.copy(state.look);
         isTableMode = (stateName === 'TABLE_SELECT');
-        if (isTableMode) {
-            panX = 0;
-            panZ = 0;
-        }
+        if (isTableMode) { panX = 0; panZ = 0; }
     }
 }
 
 // ==========================================
-// 6. FOLDER GENERATION  (unchanged)
+// 6. FOLDER GENERATION
 // ==========================================
 const foldersGroup = new THREE.Group();
 scene.add(foldersGroup);
@@ -330,8 +359,7 @@ function createFolderTexture(name) {
     ctx.fillStyle = '#d4c3a3';
     ctx.fillRect(0, 0, 512, 512);
 
-    ctx.fillStyle = '#c4b08a';
-    ctx.fillRect(50, 0, 200, 60);
+    // (painted tab removed — now a physical mesh parented to the front cover)
 
     ctx.fillStyle = '#221100';
     ctx.font = 'bold 36px "Special Elite", monospace';
@@ -339,7 +367,7 @@ function createFolderTexture(name) {
     ctx.textBaseline = 'middle';
     let words = name.split(' ');
     let line = '';
-    let y = 200;
+    let y = 230;
 
     for (let n = 0; n < words.length; n++) {
         let testLine = line + words[n] + ' ';
@@ -369,33 +397,59 @@ function create3DFolder(charData, x, z) {
     group.rotation.x = -Math.PI / 2;
     group.userData = charData;
 
+    // Back cover — rounded
     const back = new THREE.Mesh(
-        new THREE.BoxGeometry(1.2, 1.6, 0.02),
-        new THREE.MeshStandardMaterial({ color: 0xcbb58d, roughness: 0.9 })
+        new RoundedBoxGeometry(1.2, 1.6, 0.025, 3, 0.008),
+        new THREE.MeshStandardMaterial({ color: 0xcbb58d, roughness: 0.88 })
     );
     back.receiveShadow = true; back.castShadow = true;
     group.add(back);
 
+    // Inner paper sheet (unchanged)
     const paper = new THREE.Mesh(
         new THREE.PlaneGeometry(1.1, 1.5),
         new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 })
     );
-    paper.position.z = 0.011;
+    paper.position.z = 0.014;
     group.add(paper);
 
+    // Front cover group (hinged at left)
     const frontGroup = new THREE.Group();
     frontGroup.position.set(-0.6, 0, 0.02);
     group.add(frontGroup);
 
-    const front = new THREE.Mesh(
-        new THREE.BoxGeometry(1.2, 1.6, 0.02),
-        new THREE.MeshStandardMaterial({ map: createFolderTexture(charData.name), roughness: 0.9 })
-    );
-    front.position.x = 0.6;
+    // Front cover — rounded + subtle Y-based curve via vertex displacement
+    const frontGeo = new RoundedBoxGeometry(1.2, 1.6, 0.025, 6, 0.008);
+    {
+        const pos = frontGeo.attributes.position;
+        const bendAmount = 0.015;
+        for (let i = 0; i < pos.count; i++) {
+            const y = pos.getY(i);
+            const z = pos.getZ(i);
+            const t = y / 0.8;
+            pos.setZ(i, z + (1 - t * t) * bendAmount);
+        }
+        frontGeo.computeVertexNormals();
+    }
+    const front = new THREE.Mesh(frontGeo, new THREE.MeshStandardMaterial({
+        map: createFolderTexture(charData.name),
+        roughness: 0.85
+    }));
+    front.position.set(0.6, 0, 0);
     front.castShadow = true;
     front.userData.isFolderFront = true;
     front.userData.parentGroup = group;
     frontGroup.add(front);
+
+    // Physical tab — child of front so it opens with the cover.
+    // Not flagged as isFolderFront; raycaster walks up to front via parent.
+    const tab = new THREE.Mesh(
+        new RoundedBoxGeometry(0.45, 0.16, 0.03, 3, 0.012),
+        new THREE.MeshStandardMaterial({ color: 0xc4b08a, roughness: 0.9 })
+    );
+    tab.position.set(-0.3, 0.82, 0);
+    tab.castShadow = true;
+    front.add(tab);
 
     group.userData.frontGroup = frontGroup;
     group.userData.isOpen = false;
@@ -450,13 +504,12 @@ window.closeActiveFolder = () => {
 };
 
 // ==========================================
-// 7. INTERACTION  (unchanged)
+// 7. INTERACTION (unchanged)
 // ==========================================
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
 window.addEventListener('click', (event) => {
-
     if (!isCameraAtTable || activeFolder) return;
     if (document.getElementById('filePanel').classList.contains('active') || document.getElementById('dialogueOverlay').classList.contains('active')) return;
 
@@ -523,24 +576,18 @@ function animate() {
         targetLookAt.z = panZ;
     }
 
-    // Spring-weighted camera — replaces the frame-rate-dependent lerp
     springStep(camera.position, targetCameraPos, cameraVelocity, dt);
     springStep(currentLookAt, targetLookAt, lookVelocity, dt);
     camera.lookAt(currentLookAt);
 
     isCameraAtTable = isTableMode && camera.position.distanceTo(targetCameraPos) < 0.15;
 
-    // Blink
     const blink = Math.sin(time * 0.5) > 0.98 ? 0.1 : 1;
     leftEye.scale.y = blink; rightEye.scale.y = blink;
 
-    // Dust drift
     updateDust(elapsed);
 
-    // Cone shimmer
     coneMat.uniforms.uTime.value = elapsed;
-
-    // Grain time
     grainPass.uniforms.uTime.value = elapsed;
 
     composer.render();
@@ -566,7 +613,6 @@ setTimeout(() => {
             clearInterval(flicker);
             lampLight.intensity = 100;
             bulb.material.color.setHex(0xffcc88);
-            // fade the volumetric cone in alongside the bulb
             coneMat.uniforms.uOpacity.value = 0.09;
 
             setTimeout(() => {
@@ -582,7 +628,6 @@ setTimeout(() => {
         }
         lampLight.intensity = Math.random() > 0.4 ? 100 : 0;
         bulb.material.color.setHex(lampLight.intensity > 0 ? 0xffcc88 : 0x000000);
-        // cone flickers in sync
         coneMat.uniforms.uOpacity.value = lampLight.intensity > 0 ? 0.09 : 0.0;
         flickers++;
     }, 100);
