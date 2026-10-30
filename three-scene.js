@@ -7,80 +7,6 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 // ==========================================
-// SHARED FOLDER MATERIALS (generated once)
-// ==========================================
-const folderMaterials = (() => {
-    // Shared paper-grain canvas for the covers (per-folder, but procedural base)
-    function makeGrainCanvas(baseHex, grainStrength, foldLineY) {
-        const c = document.createElement('canvas');
-        c.width = 512; c.height = 512;
-        const ctx = c.getContext('2d');
-        ctx.fillStyle = baseHex;
-        ctx.fillRect(0, 0, 512, 512);
-
-        // Fine fiber noise
-        const img = ctx.getImageData(0, 0, 512, 512);
-        for (let i = 0; i < img.data.length; i += 4) {
-            const n = (Math.random() - 0.5) * grainStrength;
-            img.data[i]   = Math.max(0, Math.min(255, img.data[i]   + n));
-            img.data[i+1] = Math.max(0, Math.min(255, img.data[i+1] + n * 0.85));
-            img.data[i+2] = Math.max(0, Math.min(255, img.data[i+2] + n * 0.6));
-        }
-        ctx.putImageData(img, 0, 0);
-
-        // Horizontal fold line (very faint)
-        if (foldLineY !== null) {
-            ctx.strokeStyle = 'rgba(120, 90, 50, 0.06)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(0, foldLineY);
-            ctx.lineTo(512, foldLineY);
-            ctx.stroke();
-        }
-        return c;
-    }
-
-    const backGrainCanvas  = makeGrainCanvas('#cbb58d', 12, null);
-    const frontGrainCanvas = makeGrainCanvas('#d4c3a3', 12, 340);
-
-    const backTex  = new THREE.CanvasTexture(backGrainCanvas);
-    const frontTex = new THREE.CanvasTexture(frontGrainCanvas);
-    backTex.colorSpace  = THREE.SRGBColorSpace;
-    frontTex.colorSpace = THREE.SRGBColorSpace;
-    [backTex, frontTex].forEach(t => {
-        t.anisotropy = 4;
-        t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    });
-
-    // Paper stack materials — 4 slightly varied cream tones
-    const sheetColors = [0xf6f1e1, 0xefe6ce, 0xf2ead6, 0xe9dfc6];
-    const sheetMats = sheetColors.map(col => new THREE.MeshPhysicalMaterial({
-        color: col,
-        roughness: 0.92,
-        metalness: 0.0,
-        transmission: 0.02,   // barely there, only meaningful once env map is added
-        thickness: 0.3,
-        clearcoat: 0.0,
-        sheen: 0.15,
-        sheenColor: new THREE.Color(0xfff4dd)
-    }));
-
-    const backMat = new THREE.MeshStandardMaterial({
-        map: backTex,
-        roughness: 0.88,
-        metalness: 0.0
-    });
-
-    const tabMat = new THREE.MeshStandardMaterial({
-        color: 0xc9b791,
-        roughness: 0.9,
-        metalness: 0.0
-    });
-
-    return { frontGrainCanvas, backMat, tabMat, sheetMats };
-})();
-
-// ==========================================
 // 1. SCENE SETUP
 // ==========================================
 const canvas = document.getElementById('webgl-canvas');
@@ -88,9 +14,8 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x050505);
 scene.fog = new THREE.FogExp2(0x050505, 0.05);
 
-// Wider cinematic lens — the lamp would otherwise sit outside all camera frusta
 const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(0, 2, 6);
+camera.position.set(0, 2, 5.5);
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -103,23 +28,31 @@ renderer.toneMappingExposure = 1.0;
 // ==========================================
 // 2. LIGHTING
 // ==========================================
-const LAMP_POS = new THREE.Vector3(0, 3, -2.5);
+// Lamp above the binder box, pointing straight down
+const LAMP_POS = new THREE.Vector3(0, 3, -1);
 
-const lampLight = new THREE.SpotLight(0xffcc88, 0); // Starts off for flicker
+const lampLight = new THREE.SpotLight(0xffcc88, 0);
 lampLight.position.copy(LAMP_POS);
 lampLight.angle = Math.PI / 3;
 lampLight.penumbra = 0.8;
 lampLight.castShadow = true;
 scene.add(lampLight);
 
-const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.1), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+const lampTarget = new THREE.Object3D();
+lampTarget.position.set(0, 0, -1);
+scene.add(lampTarget);
+lampLight.target = lampTarget;
+
+const bulb = new THREE.Mesh(
+    new THREE.SphereGeometry(0.1),
+    new THREE.MeshBasicMaterial({ color: 0x000000 })
+);
 bulb.position.copy(LAMP_POS);
 bulb.scale.setScalar(1.4);
 scene.add(bulb);
 
 scene.add(new THREE.AmbientLight(0x221100, 0.1));
 
-// Rim fills — make folders pop off the wood without blowing out the mood
 const rimCool = new THREE.DirectionalLight(0x88aaff, 0.35);
 rimCool.position.set(-4, 1.5, -5);
 scene.add(rimCool);
@@ -128,14 +61,18 @@ const rimWarm = new THREE.DirectionalLight(0xff9955, 0.28);
 rimWarm.position.set(4, 2, -4);
 scene.add(rimWarm);
 
+// Front fill — illuminates binder SPINES which face +Z (toward camera)
+const frontFill = new THREE.DirectionalLight(0xffd5a0, 0.5);
+frontFill.position.set(0, 2.5, 5);
+scene.add(frontFill);
+
 // ==========================================
-// 2b. LAMP MODEL — shade, brass cord, brass ring
+// 2b. LAMP MODEL
 // ==========================================
 const lampGroup = new THREE.Group();
 lampGroup.position.copy(LAMP_POS);
 scene.add(lampGroup);
 
-// Dark metal exterior + inner glow via DoubleSide
 const shadeHeight = 0.55;
 const shadeGeo = new THREE.CylinderGeometry(0.08, 0.55, shadeHeight, 40, 1, true);
 const shadeMat = new THREE.MeshStandardMaterial({
@@ -150,7 +87,6 @@ shade.position.y = -0.05;
 shade.castShadow = true;
 lampGroup.add(shade);
 
-// Brass ring (decorative collar on top of the shade)
 const brassMat = new THREE.MeshStandardMaterial({
     color: 0x9a7a3a,
     metalness: 0.95,
@@ -161,7 +97,6 @@ ring.position.y = 0.24;
 ring.rotation.x = Math.PI / 2;
 lampGroup.add(ring);
 
-// Brass cord / suspension rod — hangs upward into darkness
 const cordLen = 4;
 const cord = new THREE.Mesh(
     new THREE.CylinderGeometry(0.014, 0.014, cordLen, 8),
@@ -173,7 +108,6 @@ lampGroup.add(cord);
 // ==========================================
 // 3. PROPS (Desk & Eyes)
 // ==========================================
-// Procedural Wood Desk — now with beveled edges
 const canvasWood = document.createElement('canvas');
 canvasWood.width = 512; canvasWood.height = 512;
 const ctx = canvasWood.getContext('2d');
@@ -190,7 +124,6 @@ desk.position.y = -0.1;
 desk.receiveShadow = true;
 scene.add(desk);
 
-// The Archivist's Eyes
 const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffaa33 });
 const eyeGeo = new THREE.SphereGeometry(0.04, 16, 16);
 const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
@@ -200,11 +133,10 @@ rightEye.position.set(0.15, 1.5, -4);
 scene.add(leftEye, rightEye);
 
 // ==========================================
-// 3b. VOLUMETRIC LAMP CONE  (purely cosmetic)
+// 3b. VOLUMETRIC LAMP CONE
 // ==========================================
-const lightTarget = new THREE.Vector3(0, 0, 0);
-const coneHeight = LAMP_POS.distanceTo(lightTarget);
-const coneGeo = new THREE.CylinderGeometry(0.45, 2.2, coneHeight, 32, 1, true);
+const coneHeight = LAMP_POS.distanceTo(lampTarget.position);
+const coneGeo = new THREE.CylinderGeometry(0.45, 1.85, coneHeight, 32, 1, true);
 
 const coneMat = new THREE.ShaderMaterial({
     uniforms: {
@@ -250,8 +182,8 @@ const coneMat = new THREE.ShaderMaterial({
 const lampCone = new THREE.Mesh(coneGeo, coneMat);
 lampCone.raycast = () => {};
 {
-    const mid = LAMP_POS.clone().add(lightTarget).multiplyScalar(0.5);
-    const dir = lightTarget.clone().sub(LAMP_POS).normalize();
+    const mid = LAMP_POS.clone().add(lampTarget.position).multiplyScalar(0.5);
+    const dir = lampTarget.position.clone().sub(LAMP_POS).normalize();
     const q = new THREE.Quaternion().setFromUnitVectors(
         new THREE.Vector3(0, 1, 0),
         dir.clone().negate()
@@ -374,17 +306,14 @@ composer.addPass(grainPass);
 composer.addPass(new OutputPass());
 
 // ==========================================
-// 5. CAMERA CHOREOGRAPHY (unchanged targets, spring physics)
+// 5. CAMERA
 // ==========================================
-let targetCameraPos = new THREE.Vector3(0, 2, 6);
-let targetLookAt = new THREE.Vector3(0, 1, -4);
-const currentLookAt = new THREE.Vector3(0, 1, -4);
+let targetCameraPos = new THREE.Vector3(0, 2, 5.5);
+let targetLookAt = new THREE.Vector3(0, 1.2, -1.5);
+const currentLookAt = new THREE.Vector3(0, 1.2, -1.5);
 
 let isTableMode = false;
 let isCameraAtTable = false;
-let panX = 0;
-let panZ = 0;
-let panBounds = { minX: -2, maxX: 2, minZ: -2, maxZ: 2 };
 
 const cameraVelocity = new THREE.Vector3();
 const lookVelocity   = new THREE.Vector3();
@@ -401,10 +330,10 @@ function springStep(current, target, velocity, dt) {
 }
 
 const CAM_STATES = {
-    INTRO_LIGHT: { pos: new THREE.Vector3(0, 2, 6), look: new THREE.Vector3(0, 0, 0) },
-    INTRO_DOWN:  { pos: new THREE.Vector3(0, 4, 3), look: new THREE.Vector3(0, 0, 0) },
-    INTRO_UP:    { pos: new THREE.Vector3(0, 2, 5), look: new THREE.Vector3(0, 1.5, -4) },
-    TABLE_SELECT:{ pos: new THREE.Vector3(0, 7, 0.1), look: new THREE.Vector3(0, 0, 0) }
+    INTRO_LIGHT:  { pos: new THREE.Vector3(0, 2, 5.5),   look: new THREE.Vector3(0, 1.2, -1.5) },
+    INTRO_DOWN:   { pos: new THREE.Vector3(0, 3.5, 3),   look: new THREE.Vector3(0, 0.5, -1)   },
+    INTRO_UP:     { pos: new THREE.Vector3(0, 2, 4.5),   look: new THREE.Vector3(0, 1.5, -4)   },
+    TABLE_SELECT: { pos: new THREE.Vector3(0, 1.5, 2.5), look: new THREE.Vector3(0, 0.9, -1)   }
 };
 
 function setCameraState(stateName) {
@@ -413,52 +342,63 @@ function setCameraState(stateName) {
         targetCameraPos.copy(state.pos);
         targetLookAt.copy(state.look);
         isTableMode = (stateName === 'TABLE_SELECT');
-        if (isTableMode) { panX = 0; panZ = 0; }
     }
 }
 
 // ==========================================
-// 6. FOLDER GENERATION
+// 6. BINDER SYSTEM
 // ==========================================
 const foldersGroup = new THREE.Group();
 scene.add(foldersGroup);
-let currentFolders = [];
-let activeFolder = null;
+let currentFolders = [];       // binder groups (kept as 'currentFolders' so raycaster works unchanged)
+let currentBox = null;
+let activeFolder = null;       // binder currently being presented / open
+let hoveredBinder = null;
 
-function createFolderTexture(name) {
+const BINDER_THICKNESS = 0.12;
+const BINDER_HEIGHT    = 1.0;
+const BINDER_WIDTH     = 0.85;
+const BOX_BASE_Y       = 0.0;
+const BINDER_BASE_Y    = 0.03 + BINDER_HEIGHT / 2;   // bottom of binder above box floor
+
+const PRESENT_POS = new THREE.Vector3(0.2, 1.0, 0.5);
+const PRESENT_ROT_Y = 0;
+const SHELF_ROT_Y   = Math.PI / 2;
+
+// ---- Texture generators ----
+function createSpineTexture(name) {
     const c = document.createElement('canvas');
-    c.width = 512; c.height = 512;
+    c.width = 96; c.height = 512;
     const ctx = c.getContext('2d');
 
-    // Start from the shared grain canvas (copy it in)
-    ctx.drawImage(folderMaterials.frontGrainCanvas, 0, 0);
+    // Leather spine base
+    ctx.fillStyle = '#3a2518';
+    ctx.fillRect(0, 0, 96, 512);
+    for (let i = 0; i < 260; i++) {
+        ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.18})`;
+        ctx.fillRect(Math.random() * 96, 0, 1, 512);
+    }
+    // Gold border
+    ctx.strokeStyle = 'rgba(200, 170, 100, 0.65)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(6, 6, 84, 500);
+    ctx.strokeRect(10, 10, 76, 492);
 
-    // Name (wrapped)
-    ctx.fillStyle = '#221100';
-    ctx.font = 'bold 36px "Special Elite", monospace';
+    // Vertical name
+    ctx.save();
+    ctx.translate(48, 256);
+    ctx.rotate(-Math.PI / 2);
+    let fontSize = 32;
+    ctx.font = `bold ${fontSize}px "Special Elite", serif`;
+    while (ctx.measureText(name).width > 440 && fontSize > 11) {
+        fontSize -= 1;
+        ctx.font = `bold ${fontSize}px "Special Elite", serif`;
+    }
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    let words = name.split(' ');
-    let line = '';
-    let y = 230;
-
-    for (let n = 0; n < words.length; n++) {
-        let testLine = line + words[n] + ' ';
-        if (ctx.measureText(testLine).width > 400 && n > 0) {
-            ctx.fillText(line, 256, y);
-            line = words[n] + ' ';
-            y += 50;
-        } else { line = testLine; }
-    }
-    ctx.fillText(line, 256, y);
-
-    // TOP SECRET stamp
-    ctx.fillStyle = 'rgba(200,30,30,0.7)';
-    ctx.strokeStyle = 'rgba(200,30,30,0.7)';
-    ctx.lineWidth = 6;
-    ctx.strokeRect(340, 400, 140, 50);
-    ctx.font = 'bold 24px "Special Elite", monospace';
-    ctx.fillText("TOP SECRET", 410, 425);
+    ctx.fillStyle = '#e0c890';
+    ctx.fillText(name, 0, 0);
+    ctx.restore();
 
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;
@@ -466,213 +406,368 @@ function createFolderTexture(name) {
     return tex;
 }
 
-function create3DFolder(charData, x, z) {
-    const group = new THREE.Group();
-    group.position.set(x, 0.02, z);
-    group.rotation.x = -Math.PI / 2;
-    group.userData = charData;
+function createCoverTexture(name) {
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 600;
+    const ctx = c.getContext('2d');
 
-    // ---------- BACK COVER ----------
-    const back = new THREE.Mesh(
-        new RoundedBoxGeometry(1.2, 1.6, 0.025, 4, 0.008),
-        folderMaterials.backMat
+    ctx.fillStyle = '#3a2818';
+    ctx.fillRect(0, 0, 512, 600);
+    const img = ctx.getImageData(0, 0, 512, 600);
+    for (let i = 0; i < img.data.length; i += 4) {
+        const n = (Math.random() - 0.5) * 15;
+        img.data[i]   += n;
+        img.data[i+1] += n * 0.85;
+        img.data[i+2] += n * 0.65;
+    }
+    ctx.putImageData(img, 0, 0);
+
+    // Paper label
+    ctx.fillStyle = '#f0e8d0';
+    ctx.fillRect(60, 100, 392, 400);
+    ctx.strokeStyle = 'rgba(80, 50, 20, 0.5)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(60, 100, 392, 400);
+
+    // Name (wrapped, auto-scaled)
+    ctx.fillStyle = '#1a1008';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    const words = name.split(' ');
+    let fontSize = 38;
+    ctx.font = `bold ${fontSize}px "Special Elite", serif`;
+
+    const maxWidth = 360;
+    const lines = [];
+    let currentLine = '';
+    for (const word of words) {
+        const test = currentLine ? currentLine + ' ' + word : word;
+        if (ctx.measureText(test).width > maxWidth && currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+        } else {
+            currentLine = test;
+        }
+    }
+    if (currentLine) lines.push(currentLine);
+
+    let lineHeight = fontSize * 1.3;
+    while (lines.length * lineHeight > 340 && fontSize > 14) {
+        fontSize -= 2;
+        ctx.font = `bold ${fontSize}px "Special Elite", serif`;
+        lineHeight = fontSize * 1.3;
+    }
+
+    const startY = 300 - (lines.length - 1) * lineHeight / 2;
+    lines.forEach((line, i) => {
+        ctx.fillText(line, 256, startY + i * lineHeight);
+    });
+
+    // TOP SECRET stamp
+    ctx.save();
+    ctx.translate(256, 545);
+    ctx.rotate(-0.08);
+    ctx.strokeStyle = 'rgba(180, 30, 30, 0.75)';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(-100, -25, 200, 50);
+    ctx.fillStyle = 'rgba(180, 30, 30, 0.75)';
+    ctx.font = 'bold 24px "Special Elite", serif';
+    ctx.fillText('TOP SECRET', 0, 0);
+    ctx.restore();
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 4;
+    return tex;
+}
+
+// ---- Binder builder ----
+function createBinder(charData, x, y, z) {
+    const group = new THREE.Group();
+    group.position.set(x, y, z);
+    group.rotation.y = SHELF_ROT_Y;
+    group.userData = charData;
+    group.userData.shelfPosition = new THREE.Vector3(x, y, z);
+    group.userData.isOpen = false;
+    group.userData.pullOut = 0;
+
+    // Pages (cream stack, slightly inset)
+    const pages = new THREE.Mesh(
+        new RoundedBoxGeometry(BINDER_WIDTH - 0.06, BINDER_HEIGHT - 0.06, 0.08, 3, 0.005),
+        new THREE.MeshStandardMaterial({ color: 0xf0e8d0, roughness: 0.92 })
     );
-    back.receiveShadow = true;
+    pages.castShadow = true;
+    pages.receiveShadow = true;
+    group.add(pages);
+
+    // Back cover
+    const back = new THREE.Mesh(
+        new RoundedBoxGeometry(BINDER_WIDTH, BINDER_HEIGHT, 0.02, 3, 0.006),
+        new THREE.MeshStandardMaterial({ color: 0x8a6f4a, roughness: 0.85 })
+    );
+    back.position.z = -0.055;
     back.castShadow = true;
+    back.receiveShadow = true;
     group.add(back);
 
-    // ---------- PAPER STACK (4 sheets, visible edges) ----------
-    // Sits between back top (z ≈ 0.0125) and front bottom (z ≈ 0.03)
-    for (let i = 0; i < 4; i++) {
-        const sheet = new THREE.Mesh(
-            new RoundedBoxGeometry(1.08, 1.48, 0.003, 2, 0.002),
-            folderMaterials.sheetMats[i]
-        );
-        sheet.position.set(
-            (Math.random() - 0.5) * 0.018,
-            (Math.random() - 0.5) * 0.018,
-            0.014 + i * 0.0045
-        );
-        sheet.rotation.z = (Math.random() - 0.5) * 0.018;
-        sheet.castShadow = true;
-        sheet.receiveShadow = true;
-        group.add(sheet);
-    }
+    // Spine
+    const spine = new THREE.Mesh(
+        new RoundedBoxGeometry(0.025, BINDER_HEIGHT, 0.12, 3, 0.006),
+        new THREE.MeshStandardMaterial({ map: createSpineTexture(charData.name), roughness: 0.82 })
+    );
+    spine.position.set(-BINDER_WIDTH / 2 + 0.0125, 0, 0);
+    spine.castShadow = true;
+    group.add(spine);
 
-    // ---------- FRONT COVER (hinged) ----------
+    // Front cover (hinged at spine)
     const frontGroup = new THREE.Group();
-    frontGroup.position.set(-0.6, 0, 0.0425); // lift so sheets fit underneath
+    frontGroup.position.set(-BINDER_WIDTH / 2, 0, 0.055);
     group.add(frontGroup);
 
-    const frontGeo = new RoundedBoxGeometry(1.2, 1.6, 0.025, 6, 0.008);
-    {
-        // Subtle bend along Y (top-to-bottom) — stronger than Pass 1, still safe
-        const pos = frontGeo.attributes.position;
-        const bendAmount = 0.022;
-        for (let i = 0; i < pos.count; i++) {
-            const y = pos.getY(i);
-            const z = pos.getZ(i);
-            const t = y / 0.8;
-            pos.setZ(i, z + (1 - t * t) * bendAmount);
-        }
-        frontGeo.computeVertexNormals();
-    }
-
     const front = new THREE.Mesh(
-        frontGeo,
-        new THREE.MeshStandardMaterial({
-            map: createFolderTexture(charData.name),
-            roughness: 0.85,
-            metalness: 0.0
-        })
+        new RoundedBoxGeometry(BINDER_WIDTH, BINDER_HEIGHT, 0.02, 3, 0.006),
+        new THREE.MeshStandardMaterial({ map: createCoverTexture(charData.name), roughness: 0.82 })
     );
-    front.position.set(0.6, 0, 0);
+    front.position.set(BINDER_WIDTH / 2, 0, 0);
     front.castShadow = true;
+    front.receiveShadow = true;
     front.userData.isFolderFront = true;
     front.userData.parentGroup = group;
     frontGroup.add(front);
 
-    // ---------- TAB (real protruding tab with label) ----------
-    const tab = new THREE.Mesh(
-        new RoundedBoxGeometry(0.52, 0.18, 0.03, 3, 0.012),
-        folderMaterials.tabMat
-    );
-    tab.position.set(-0.28, 0.86, 0); // half in the cover, half protruding above edge
-    tab.castShadow = true;
-    front.add(tab);
-
-    // Tab label — short abbreviated name
-    const shortLabel = charData.name.split(' ')[0].slice(0, 10);
-    const labelCanvas = document.createElement('canvas');
-    labelCanvas.width = 256; labelCanvas.height = 96;
-    const lctx = labelCanvas.getContext('2d');
-    lctx.fillStyle = '#c9b791';
-    lctx.fillRect(0, 0, 256, 96);
-    lctx.fillStyle = '#221100';
-    lctx.font = 'bold 40px "Special Elite", monospace';
-    lctx.textAlign = 'center';
-    lctx.textBaseline = 'middle';
-    lctx.fillText(shortLabel, 128, 48);
-    const labelTex = new THREE.CanvasTexture(labelCanvas);
-    labelTex.colorSpace = THREE.SRGBColorSpace;
-
-    const tabLabel = new THREE.Mesh(
-        new THREE.PlaneGeometry(0.46, 0.14),
-        new THREE.MeshBasicMaterial({ map: labelTex })
-    );
-    tabLabel.position.set(0, 0, 0.016); // just above tab top face
-    tab.add(tabLabel);
-
     group.userData.frontGroup = frontGroup;
-    group.userData.isOpen = false;
-
     return group;
 }
 
+// ---- Binder box ----
+function createBinderBox(centerX, centerZ, boxWidth) {
+    const boxGroup = new THREE.Group();
+    boxGroup.position.set(centerX, BOX_BASE_Y, centerZ);
+    boxGroup.raycast = () => {};
+
+    const boxMat = new THREE.MeshStandardMaterial({
+        color: 0x2a1a0c,
+        roughness: 0.75,
+        metalness: 0.05
+    });
+
+    const boxHeight = 0.3;
+    const boxDepth = 1.0;
+
+    const bottom = new THREE.Mesh(new RoundedBoxGeometry(boxWidth, 0.03, boxDepth, 3, 0.008), boxMat);
+    bottom.position.y = 0.015;
+    bottom.receiveShadow = true;
+    boxGroup.add(bottom);
+
+    const leftWall = new THREE.Mesh(new RoundedBoxGeometry(0.03, boxHeight, boxDepth, 3, 0.008), boxMat);
+    leftWall.position.set(-boxWidth / 2 + 0.015, boxHeight / 2, 0);
+    leftWall.castShadow = true;
+    leftWall.receiveShadow = true;
+    boxGroup.add(leftWall);
+
+    const rightWall = leftWall.clone();
+    rightWall.position.x = boxWidth / 2 - 0.015;
+    boxGroup.add(rightWall);
+
+    // Front wall is lower so binders stick out — the "document tray" silhouette
+    const frontWall = new THREE.Mesh(new RoundedBoxGeometry(boxWidth, boxHeight * 0.55, 0.03, 3, 0.008), boxMat);
+    frontWall.position.set(0, boxHeight * 0.275, boxDepth / 2 - 0.015);
+    frontWall.castShadow = true;
+    boxGroup.add(frontWall);
+
+    const backWall = new THREE.Mesh(new RoundedBoxGeometry(boxWidth, boxHeight, 0.03, 3, 0.008), boxMat);
+    backWall.position.set(0, boxHeight / 2, -boxDepth / 2 + 0.015);
+    backWall.castShadow = true;
+    backWall.receiveShadow = true;
+    boxGroup.add(backWall);
+
+    return boxGroup;
+}
+
+// ---- Spawn (kept as window.spawn3DFolders for display-characters.js) ----
 window.spawn3DFolders = (charactersList) => {
     currentFolders.forEach(f => foldersGroup.remove(f));
     currentFolders = [];
     activeFolder = null;
+    hoveredBinder = null;
+    if (currentBox) { foldersGroup.remove(currentBox); currentBox = null; }
 
-    const cols = Math.ceil(Math.sqrt(charactersList.length));
-    const spacing = 1.8;
-    const startX = -((cols - 1) * spacing) / 2;
-    const startZ = -((Math.ceil(charactersList.length / cols) - 1) * spacing) / 2;
+    const n = charactersList.length;
+    const spacing = 0.16;
+    const boxWidth = Math.max(0.6, n * spacing + 0.2);
+    const boxCenterZ = -1.0;
+
+    currentBox = createBinderBox(0, boxCenterZ, boxWidth);
+    foldersGroup.add(currentBox);
+
+    const startX = -((n - 1) * spacing) / 2;
 
     charactersList.forEach((char, i) => {
-        const col = i % cols;
-        const row = Math.floor(i / cols);
-        const f = create3DFolder(char, startX + col * spacing, startZ + row * spacing);
-        foldersGroup.add(f);
-        currentFolders.push(f);
+        const x = startX + i * spacing;
+        const binder = createBinder(char, x, BINDER_BASE_Y, boxCenterZ);
+        foldersGroup.add(binder);
+        currentFolders.push(binder);
     });
-
-    panBounds = {
-        minX: startX - 1,
-        maxX: startX + (cols - 1) * spacing + 1,
-        minZ: startZ - 1,
-        maxZ: startZ + (Math.ceil(charactersList.length / cols) - 1) * spacing + 1
-    };
 
     setCameraState('TABLE_SELECT');
     document.getElementById('switchSideBtn').style.display = 'block';
 };
 
+// ---- Close (reverse animation) ----
 window.closeActiveFolder = () => {
     if (!activeFolder) return;
-    let progress = 0;
-    const animateClose = () => {
-        progress += 0.05;
-        if (progress <= 1) {
-            activeFolder.userData.frontGroup.rotation.y = -Math.PI * (1 - (progress * progress * (3 - 2 * progress)));
-            requestAnimationFrame(animateClose);
+    const binder = activeFolder;
+    const fg = binder.userData.frontGroup;
+
+    const startRot = fg.rotation.y;
+    let t = 0;
+    const closeCover = () => {
+        t += 0.06;
+        if (t <= 1) {
+            const ease = t * t * (3 - 2 * t);
+            fg.rotation.y = startRot * (1 - ease);
+            requestAnimationFrame(closeCover);
         } else {
-            activeFolder.userData.isOpen = false;
-            activeFolder = null;
+            fg.rotation.y = 0;
+            floatBackToShelf(binder);
         }
     };
-    animateClose();
-    setCameraState('TABLE_SELECT');
+    closeCover();
 };
 
+function floatBackToShelf(binder) {
+    const startPos = binder.position.clone();
+    const startRotY = binder.rotation.y;
+    const endPos = binder.userData.shelfPosition.clone();
+    const endRotY = SHELF_ROT_Y;
+
+    let t = 0;
+    const animate = () => {
+        t += 0.04;
+        if (t <= 1) {
+            const ease = t * t * (3 - 2 * t);
+            binder.position.lerpVectors(startPos, endPos, ease);
+            binder.rotation.y = startRotY + (endRotY - startRotY) * ease;
+            requestAnimationFrame(animate);
+        } else {
+            binder.position.copy(endPos);
+            binder.rotation.y = endRotY;
+            binder.userData.pullOut = 0;
+            binder.userData.isOpen = false;
+            activeFolder = null;
+            isTableMode = true;
+        }
+    };
+    animate();
+}
+
+// ---- Presentation animations ----
+function presentBinder(binder) {
+    const startPos = binder.position.clone();
+    const startRotY = binder.rotation.y;
+    const floatDuration = 0.9;
+    const t0 = performance.now();
+
+    function step() {
+        const elapsed = (performance.now() - t0) / 1000;
+        const t = Math.min(elapsed / floatDuration, 1);
+        const ease = t * t * (3 - 2 * t);
+
+        binder.position.lerpVectors(startPos, PRESENT_POS, ease);
+        binder.rotation.y = startRotY + (PRESENT_ROT_Y - startRotY) * ease;
+
+        if (t >= 1) {
+            binder.position.copy(PRESENT_POS);
+            binder.rotation.y = PRESENT_ROT_Y;
+            setTimeout(() => openBinder(binder), 120);
+        } else {
+            requestAnimationFrame(step);
+        }
+    }
+    step();
+}
+
+function openBinder(binder) {
+    const fg = binder.userData.frontGroup;
+    let progress = 0;
+    const animate = () => {
+        progress += 0.045;
+        if (progress <= 1) {
+            const ease = progress * progress * (3 - 2 * progress);
+            fg.rotation.y = -Math.PI * ease;
+            requestAnimationFrame(animate);
+        } else {
+            fg.rotation.y = -Math.PI;
+            if (window.openDossierFrom3D) window.openDossierFrom3D(binder.userData);
+        }
+    };
+    animate();
+}
+
 // ==========================================
-// 7. INTERACTION (unchanged)
+// 7. INTERACTION
 // ==========================================
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
-window.addEventListener('click', (event) => {
-    if (!isCameraAtTable || activeFolder) return;
-    if (document.getElementById('filePanel').classList.contains('active') || document.getElementById('dialogueOverlay').classList.contains('active')) return;
-
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+function raycastBinder(clientX, clientY) {
+    mouse.x = (clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
+    const hits = raycaster.intersectObjects(currentFolders, true);
+    if (hits.length === 0) return null;
+    let hit = hits[0].object;
+    while (hit && !hit.userData.isFolderFront && hit.parent) hit = hit.parent;
+    if (hit && hit.userData.isFolderFront) return hit.userData.parentGroup;
+    return null;
+}
 
-    const intersects = raycaster.intersectObjects(currentFolders, true);
-
-    if (intersects.length > 0) {
-        let hit = intersects[0].object;
-        while (hit && !hit.userData.isFolderFront && hit.parent) hit = hit.parent;
-
-        if (hit && hit.userData.isFolderFront && !hit.userData.parentGroup.userData.isOpen) {
-            activeFolder = hit.userData.parentGroup;
-            activeFolder.userData.isOpen = true;
-            isTableMode = false;
-
-            const fPos = new THREE.Vector3();
-            activeFolder.getWorldPosition(fPos);
-            targetCameraPos.set(fPos.x, fPos.y + 2, fPos.z + 2);
-            targetLookAt.copy(fPos);
-
-            let progress = 0;
-            const animateOpen = () => {
-                progress += 0.05;
-                if (progress <= 1) {
-                    activeFolder.userData.frontGroup.rotation.y = -Math.PI * (progress * progress * (3 - 2 * progress));
-                    requestAnimationFrame(animateOpen);
-                } else {
-                    if (window.openDossierFrom3D) window.openDossierFrom3D(activeFolder.userData);
-                }
-            };
-            setTimeout(animateOpen, 400);
-        }
+window.addEventListener('mousemove', (e) => {
+    if (!isCameraAtTable || activeFolder) {
+        hoveredBinder = null;
+        canvas.style.cursor = 'default';
+        return;
     }
+    const b = raycastBinder(e.clientX, e.clientY);
+    hoveredBinder = (b && !b.userData.isOpen) ? b : null;
+    canvas.style.cursor = hoveredBinder ? 'pointer' : 'default';
 });
 
-window.addEventListener('wheel', (event) => {
-    if (!isTableMode) return;
-    panZ += event.deltaY * 0.003;
-    panX += event.deltaX * 0.003;
-    panX = Math.max(panBounds.minX, Math.min(panBounds.maxX, panX));
-    panZ = Math.max(panBounds.minZ, Math.min(panBounds.maxZ, panZ));
-}, { passive: false });
+window.addEventListener('click', (event) => {
+    if (!isCameraAtTable || activeFolder) return;
+    if (document.getElementById('filePanel').classList.contains('active') ||
+        document.getElementById('dialogueOverlay').classList.contains('active')) return;
+
+    const b = raycastBinder(event.clientX, event.clientY);
+    if (b && !b.userData.isOpen) {
+        activeFolder = b;
+        b.userData.isOpen = true;
+        isTableMode = false;
+        hoveredBinder = null;
+        canvas.style.cursor = 'default';
+        presentBinder(b);
+    }
+});
 
 // ==========================================
 // 8. ANIMATION LOOP
 // ==========================================
 let time = 0;
 const clock = new THREE.Clock();
+
+function updateHoverPullout() {
+    for (const binder of currentFolders) {
+        if (binder === activeFolder) continue;
+        if (binder.userData.isOpen) continue;
+
+        const isHovered = binder === hoveredBinder && !activeFolder && isCameraAtTable;
+        const targetOut = isHovered ? 0.15 : 0;
+        binder.userData.pullOut += (targetOut - binder.userData.pullOut) * 0.15;
+
+        binder.position.z = binder.userData.shelfPosition.z + binder.userData.pullOut;
+    }
+}
 
 function animate() {
     requestAnimationFrame(animate);
@@ -681,24 +776,18 @@ function animate() {
     const dt = Math.min(clock.getDelta(), 0.05);
     const elapsed = clock.elapsedTime;
 
-    if (isTableMode) {
-        targetCameraPos.x = panX;
-        targetCameraPos.z = 0.1 + panZ;
-        targetLookAt.x = panX;
-        targetLookAt.z = panZ;
-    }
-
     springStep(camera.position, targetCameraPos, cameraVelocity, dt);
     springStep(currentLookAt, targetLookAt, lookVelocity, dt);
     camera.lookAt(currentLookAt);
 
     isCameraAtTable = isTableMode && camera.position.distanceTo(targetCameraPos) < 0.15;
 
+    updateHoverPullout();
+
     const blink = Math.sin(time * 0.5) > 0.98 ? 0.1 : 1;
     leftEye.scale.y = blink; rightEye.scale.y = blink;
 
     updateDust(elapsed);
-
     coneMat.uniforms.uTime.value = elapsed;
     grainPass.uniforms.uTime.value = elapsed;
 
