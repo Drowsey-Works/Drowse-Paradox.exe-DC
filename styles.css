@@ -13,54 +13,126 @@ body { background: #000; overflow: hidden; color: white; -webkit-tap-highlight-c
     z-index: 1;
 }
 
-/* The UI layer sits on top of the 3D scene but lets clicks pass through 
-   to the canvas UNLESS you click on a specific UI element. */
 .ui-layer {
     position: fixed; inset: 0;
-    pointer-events: none; 
+    pointer-events: none;
     z-index: 10;
 }
 
-/* Re-enable pointer events for actual UI elements */
 .index-card, .file-panel, .dialogue-overlay, .switch-side-btn { pointer-events: auto; }
 
 /* ================= SWITCH SIDE BUTTON ================= */
 .switch-side-btn {
     position: absolute; top: 30px; right: 30px; z-index: 100;
-    background: rgba(10, 8, 6, 0.9); border: 2px solid #8c1a1a; color: #ff5555; 
-    font-family: 'Special Elite', monospace; font-size: 16px; padding: 10px 20px; 
+    background: rgba(10, 8, 6, 0.9); border: 2px solid #8c1a1a; color: #ff5555;
+    font-family: 'Special Elite', monospace; font-size: 16px; padding: 10px 20px;
     cursor: pointer; letter-spacing: 2px; transition: all 0.2s;
-    display: none; /* Hidden by default, shown via JS */
+    display: none;
     align-items: center; gap: 8px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 6px 20px rgba(140,26,26,0.15);
 }
-.switch-side-btn:hover { background: #8c1a1a; color: #f4e4c1; }
+.switch-side-btn:hover { background: #8c1a1a; color: #f4e4c1; box-shadow: 0 0 20px rgba(200,40,40,0.4); }
 
-/* ================= DIALOGUE ================= */
+/* ================= DIALOGUE — CRT INTERCOM ================= */
 .dialogue-overlay {
     position: absolute; inset: 0;
     display: flex; align-items: flex-end; justify-content: center;
     padding: 40px; opacity: 0; transition: opacity 0.6s ease;
 }
 .dialogue-overlay.active { opacity: 1; pointer-events: auto; }
+
 .dialogue-box {
     width: 100%; max-width: 1100px;
-    background: rgba(10, 8, 6, 0.95); border: 3px solid #8c7a58; border-radius: 4px;
-    padding: 30px 40px 50px; position: relative;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.9), inset 0 0 40px rgba(140,122,88,0.1);
-    transform: translateY(30px); transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    /* Vintage intercom chassis */
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(60,45,25,0.25) 0%, rgba(0,0,0,0) 55%),
+        radial-gradient(ellipse at 50% 100%, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 60%),
+        linear-gradient(180deg, #12100b 0%, #0a0806 60%, #060504 100%);
+    border: 3px solid #6b5a3e;
+    border-radius: 10px;
+    padding: 30px 40px 50px;
     min-height: 220px;
+    box-shadow:
+        0 24px 70px rgba(0,0,0,0.95),
+        0 0 0 1px rgba(0,0,0,0.85),
+        inset 0 0 60px rgba(140,122,88,0.10),
+        inset 0 2px 0 rgba(196,176,138,0.15),
+        inset 0 -2px 8px rgba(0,0,0,0.8);
+    transform: translateY(30px);
+    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: transform;
 }
-.dialogue-overlay.active .dialogue-box { transform: translateY(0); }
+.dialogue-overlay.active .dialogue-box {
+    transform: translateY(0);
+    animation: crtFlicker 9s infinite;
+}
+
+/* CRT scanlines overlay */
+.dialogue-box::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0,0,0,0) 0px,
+        rgba(0,0,0,0) 2px,
+        rgba(0,0,0,0.22) 2px,
+        rgba(0,0,0,0.22) 3px
+    );
+    pointer-events: none;
+    border-radius: 10px;
+    z-index: 2;
+    mix-blend-mode: multiply;
+}
+/* CRT glow + edge vignette */
+.dialogue-box::after {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+        radial-gradient(ellipse at center, rgba(255,200,140,0.045) 0%, rgba(0,0,0,0.45) 100%);
+    pointer-events: none;
+    border-radius: 10px;
+    z-index: 1;
+}
+
+@keyframes crtFlicker {
+    0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; }
+    20%, 24%, 55% { opacity: 0.93; }
+}
+
 .dialogue-speaker {
     font-family: 'Special Elite', monospace;
     color: #c4b08a; font-size: 14px; letter-spacing: 3px;
-    margin-bottom: 20px; border-bottom: 1px dashed rgba(196,176,138,0.3); padding-bottom: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px dashed rgba(196,176,138,0.3);
+    padding-bottom: 10px;
+    position: relative; z-index: 3;
+    display: flex; align-items: center; gap: 10px;
+}
+/* REC indicator */
+.dialogue-speaker::before {
+    content: '●';
+    color: #8c1a1a;
+    font-size: 10px;
+    animation: recBlink 1.4s steps(1) infinite;
+    text-shadow: 0 0 6px rgba(180,30,30,0.9);
+    display: inline-block;
+}
+@keyframes recBlink {
+    0%, 55% { opacity: 1; }
+    56%, 100% { opacity: 0.15; }
 }
 .speaker-icon { margin-right: 8px; }
+
 .dialogue-text {
-    font-family: 'Special Elite', monospace; font-size: 28px; line-height: 1.5;
+    font-family: 'Special Elite', monospace;
+    font-size: 28px; line-height: 1.5;
     color: #f4e4c1; min-height: 80px; letter-spacing: 1px;
+    position: relative; z-index: 3;
+    text-shadow: 0 0 18px rgba(255,200,140,0.12);
 }
+
 .char { display: inline-block; will-change: transform; }
 .char.wave { animation: waveChar 1.4s ease-in-out infinite; color: #88ccff; }
 .char.shake { animation: shakeChar 0.15s linear infinite; color: #ff5555; text-shadow: 0 0 8px rgba(255,80,80,0.6); }
@@ -76,9 +148,11 @@ body { background: #000; overflow: hidden; color: white; -webkit-tap-highlight-c
     position: absolute; bottom: 15px; right: 25px;
     font-size: 22px; color: #c4b08a;
     animation: arrowBlink 1.2s ease-in-out infinite; display: none;
+    z-index: 3;
+    text-shadow: 0 0 10px rgba(196,176,138,0.5);
 }
 @keyframes arrowBlink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-.dialogue-choices { display: none; flex-direction: column; gap: 12px; margin-top: 25px; }
+.dialogue-choices { display: none; flex-direction: column; gap: 12px; margin-top: 25px; position: relative; z-index: 3; }
 .dialogue-choices.active { display: flex; }
 .choice-btn {
     background: transparent; border: 2px solid #8c7a58; color: #f4e4c1;
@@ -86,21 +160,29 @@ body { background: #000; overflow: hidden; color: white; -webkit-tap-highlight-c
     cursor: pointer; text-align: left; letter-spacing: 3px;
     transition: all 0.2s ease; animation: choiceFade 0.4s ease backwards;
 }
-.choice-btn:hover { background: #8c7a58; color: #1a110a; padding-left: 40px; }
+.choice-btn:hover { background: #8c7a58; color: #1a110a; padding-left: 40px; box-shadow: 0 0 24px rgba(140,122,88,0.35); }
 @keyframes choiceFade { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
 
 /* ================= FULL-PAGE DOSSIER ================= */
 .file-panel {
     position: fixed; inset: 0;
-    background: #f4e4c1;
-    background-image: url('https://www.transparenttextures.com/patterns/paper.png');
+    /* Paper with layered aging gradients + real texture */
+    background-color: #efe0bd;
+    background-image:
+        radial-gradient(ellipse at center, rgba(0,0,0,0) 35%, rgba(80,50,20,0.32) 100%),
+        url('https://www.transparenttextures.com/patterns/paper.png');
+    background-repeat: no-repeat, repeat;
     z-index: 200;
     opacity: 0; visibility: hidden;
-    transition: opacity 0.8s ease;
+    transform: scale(0.985);
+    transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
     overflow-y: auto;
     color: #221100;
+    box-shadow:
+        inset 0 0 200px rgba(100,60,20,0.22),
+        inset 0 0 40px rgba(60,30,10,0.18);
 }
-.file-panel.active { opacity: 1; visibility: visible; }
+.file-panel.active { opacity: 1; visibility: visible; transform: scale(1); }
 
 .file-panel-inner {
     width: 100%; min-height: 100vh;
@@ -114,10 +196,10 @@ body { background: #000; overflow: hidden; color: white; -webkit-tap-highlight-c
     border: none; padding: 12px 22px; border-radius: 3px;
     font-family: 'Special Elite', monospace;
     font-size: 13px; cursor: pointer; letter-spacing: 2px;
-    z-index: 210; transition: background 0.2s, transform 0.2s;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    z-index: 210; transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3), 0 1px 0 rgba(255,255,255,0.15) inset;
 }
-.close-btn:hover { background: #b02020; transform: translateY(-2px); }
+.close-btn:hover { background: #b02020; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(140,26,26,0.5); }
 
 .dossier-header {
     display: flex; justify-content: space-between; align-items: flex-start;
@@ -127,6 +209,7 @@ body { background: #000; overflow: hidden; color: white; -webkit-tap-highlight-c
 .dossier-header h1 {
     font-family: 'Special Elite', monospace;
     font-size: 3.5rem; color: #221100; letter-spacing: 3px;
+    text-shadow: 1px 1px 0 rgba(120,80,30,0.15);
 }
 .file-subtitle {
     font-family: 'Special Elite', monospace;
@@ -137,6 +220,7 @@ body { background: #000; overflow: hidden; color: white; -webkit-tap-highlight-c
     padding: 8px 22px; font-family: 'Special Elite', monospace;
     font-size: 20px; font-weight: bold; transform: rotate(8deg);
     opacity: 0.85; letter-spacing: 4px; flex-shrink: 0;
+    box-shadow: inset 0 0 12px rgba(140,26,26,0.2), 0 2px 6px rgba(0,0,0,0.08);
 }
 
 .dossier-body {
@@ -150,14 +234,30 @@ body { background: #000; overflow: hidden; color: white; -webkit-tap-highlight-c
     color: #221100; letter-spacing: 2px;
 }
 
+/* Photo with taped corner */
 .image-box {
+    position: relative;
     background: #e8d8b8; border: 3px solid #221100;
     padding: 10px; margin-bottom: 25px;
-    box-shadow: 5px 5px 0 rgba(34,17,0,0.3);
+    box-shadow:
+        5px 5px 0 rgba(34,17,0,0.3),
+        0 12px 28px rgba(60,30,10,0.18);
+}
+.image-box::before {
+    content: '';
+    position: absolute;
+    top: -9px; left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    width: 70px; height: 20px;
+    background: rgba(224,205,155,0.85);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.18);
+    pointer-events: none;
+    z-index: 2;
 }
 .image-box img {
     width: 100%; display: block;
     filter: sepia(0.25) contrast(1.1);
+    box-shadow: inset 0 0 20px rgba(60,30,10,0.2);
 }
 
 .section { margin-bottom: 30px; }
@@ -167,6 +267,7 @@ body { background: #000; overflow: hidden; color: white; -webkit-tap-highlight-c
     background: rgba(34,17,0,0.06);
     border: 2px solid rgba(34,17,0,0.2);
     padding: 15px;
+    box-shadow: inset 0 0 24px rgba(120,80,30,0.08);
 }
 .stat-row {
     display: flex; justify-content: space-between;
