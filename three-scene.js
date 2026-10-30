@@ -7,6 +7,80 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 // ==========================================
+// SHARED FOLDER MATERIALS (generated once)
+// ==========================================
+const folderMaterials = (() => {
+    // Shared paper-grain canvas for the covers (per-folder, but procedural base)
+    function makeGrainCanvas(baseHex, grainStrength, foldLineY) {
+        const c = document.createElement('canvas');
+        c.width = 512; c.height = 512;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = baseHex;
+        ctx.fillRect(0, 0, 512, 512);
+
+        // Fine fiber noise
+        const img = ctx.getImageData(0, 0, 512, 512);
+        for (let i = 0; i < img.data.length; i += 4) {
+            const n = (Math.random() - 0.5) * grainStrength;
+            img.data[i]   = Math.max(0, Math.min(255, img.data[i]   + n));
+            img.data[i+1] = Math.max(0, Math.min(255, img.data[i+1] + n * 0.85));
+            img.data[i+2] = Math.max(0, Math.min(255, img.data[i+2] + n * 0.6));
+        }
+        ctx.putImageData(img, 0, 0);
+
+        // Horizontal fold line (very faint)
+        if (foldLineY !== null) {
+            ctx.strokeStyle = 'rgba(120, 90, 50, 0.06)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, foldLineY);
+            ctx.lineTo(512, foldLineY);
+            ctx.stroke();
+        }
+        return c;
+    }
+
+    const backGrainCanvas  = makeGrainCanvas('#cbb58d', 12, null);
+    const frontGrainCanvas = makeGrainCanvas('#d4c3a3', 12, 340);
+
+    const backTex  = new THREE.CanvasTexture(backGrainCanvas);
+    const frontTex = new THREE.CanvasTexture(frontGrainCanvas);
+    backTex.colorSpace  = THREE.SRGBColorSpace;
+    frontTex.colorSpace = THREE.SRGBColorSpace;
+    [backTex, frontTex].forEach(t => {
+        t.anisotropy = 4;
+        t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    });
+
+    // Paper stack materials — 4 slightly varied cream tones
+    const sheetColors = [0xf6f1e1, 0xefe6ce, 0xf2ead6, 0xe9dfc6];
+    const sheetMats = sheetColors.map(col => new THREE.MeshPhysicalMaterial({
+        color: col,
+        roughness: 0.92,
+        metalness: 0.0,
+        transmission: 0.02,   // barely there, only meaningful once env map is added
+        thickness: 0.3,
+        clearcoat: 0.0,
+        sheen: 0.15,
+        sheenColor: new THREE.Color(0xfff4dd)
+    }));
+
+    const backMat = new THREE.MeshStandardMaterial({
+        map: backTex,
+        roughness: 0.88,
+        metalness: 0.0
+    });
+
+    const tabMat = new THREE.MeshStandardMaterial({
+        color: 0xc9b791,
+        roughness: 0.9,
+        metalness: 0.0
+    });
+
+    return { frontGrainCanvas, backMat, tabMat, sheetMats };
+})();
+
+// ==========================================
 // 1. SCENE SETUP
 // ==========================================
 const canvas = document.getElementById('webgl-canvas');
@@ -356,11 +430,10 @@ function createFolderTexture(name) {
     c.width = 512; c.height = 512;
     const ctx = c.getContext('2d');
 
-    ctx.fillStyle = '#d4c3a3';
-    ctx.fillRect(0, 0, 512, 512);
+    // Start from the shared grain canvas (copy it in)
+    ctx.drawImage(folderMaterials.frontGrainCanvas, 0, 0);
 
-    // (painted tab removed — now a physical mesh parented to the front cover)
-
+    // Name (wrapped)
     ctx.fillStyle = '#221100';
     ctx.font = 'bold 36px "Special Elite", monospace';
     ctx.textAlign = 'center';
@@ -379,6 +452,7 @@ function createFolderTexture(name) {
     }
     ctx.fillText(line, 256, y);
 
+    // TOP SECRET stamp
     ctx.fillStyle = 'rgba(200,30,30,0.7)';
     ctx.strokeStyle = 'rgba(200,30,30,0.7)';
     ctx.lineWidth = 6;
@@ -388,6 +462,7 @@ function createFolderTexture(name) {
 
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 4;
     return tex;
 }
 
@@ -397,32 +472,43 @@ function create3DFolder(charData, x, z) {
     group.rotation.x = -Math.PI / 2;
     group.userData = charData;
 
-    // Back cover — rounded
+    // ---------- BACK COVER ----------
     const back = new THREE.Mesh(
-        new RoundedBoxGeometry(1.2, 1.6, 0.025, 3, 0.008),
-        new THREE.MeshStandardMaterial({ color: 0xcbb58d, roughness: 0.88 })
+        new RoundedBoxGeometry(1.2, 1.6, 0.025, 4, 0.008),
+        folderMaterials.backMat
     );
-    back.receiveShadow = true; back.castShadow = true;
+    back.receiveShadow = true;
+    back.castShadow = true;
     group.add(back);
 
-    // Inner paper sheet (unchanged)
-    const paper = new THREE.Mesh(
-        new THREE.PlaneGeometry(1.1, 1.5),
-        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 })
-    );
-    paper.position.z = 0.014;
-    group.add(paper);
+    // ---------- PAPER STACK (4 sheets, visible edges) ----------
+    // Sits between back top (z ≈ 0.0125) and front bottom (z ≈ 0.03)
+    for (let i = 0; i < 4; i++) {
+        const sheet = new THREE.Mesh(
+            new RoundedBoxGeometry(1.08, 1.48, 0.003, 2, 0.002),
+            folderMaterials.sheetMats[i]
+        );
+        sheet.position.set(
+            (Math.random() - 0.5) * 0.018,
+            (Math.random() - 0.5) * 0.018,
+            0.014 + i * 0.0045
+        );
+        sheet.rotation.z = (Math.random() - 0.5) * 0.018;
+        sheet.castShadow = true;
+        sheet.receiveShadow = true;
+        group.add(sheet);
+    }
 
-    // Front cover group (hinged at left)
+    // ---------- FRONT COVER (hinged) ----------
     const frontGroup = new THREE.Group();
-    frontGroup.position.set(-0.6, 0, 0.02);
+    frontGroup.position.set(-0.6, 0, 0.0425); // lift so sheets fit underneath
     group.add(frontGroup);
 
-    // Front cover — rounded + subtle Y-based curve via vertex displacement
     const frontGeo = new RoundedBoxGeometry(1.2, 1.6, 0.025, 6, 0.008);
     {
+        // Subtle bend along Y (top-to-bottom) — stronger than Pass 1, still safe
         const pos = frontGeo.attributes.position;
-        const bendAmount = 0.015;
+        const bendAmount = 0.022;
         for (let i = 0; i < pos.count; i++) {
             const y = pos.getY(i);
             const z = pos.getZ(i);
@@ -431,25 +517,51 @@ function create3DFolder(charData, x, z) {
         }
         frontGeo.computeVertexNormals();
     }
-    const front = new THREE.Mesh(frontGeo, new THREE.MeshStandardMaterial({
-        map: createFolderTexture(charData.name),
-        roughness: 0.85
-    }));
+
+    const front = new THREE.Mesh(
+        frontGeo,
+        new THREE.MeshStandardMaterial({
+            map: createFolderTexture(charData.name),
+            roughness: 0.85,
+            metalness: 0.0
+        })
+    );
     front.position.set(0.6, 0, 0);
     front.castShadow = true;
     front.userData.isFolderFront = true;
     front.userData.parentGroup = group;
     frontGroup.add(front);
 
-    // Physical tab — child of front so it opens with the cover.
-    // Not flagged as isFolderFront; raycaster walks up to front via parent.
+    // ---------- TAB (real protruding tab with label) ----------
     const tab = new THREE.Mesh(
-        new RoundedBoxGeometry(0.45, 0.16, 0.03, 3, 0.012),
-        new THREE.MeshStandardMaterial({ color: 0xc4b08a, roughness: 0.9 })
+        new RoundedBoxGeometry(0.52, 0.18, 0.03, 3, 0.012),
+        folderMaterials.tabMat
     );
-    tab.position.set(-0.3, 0.82, 0);
+    tab.position.set(-0.28, 0.86, 0); // half in the cover, half protruding above edge
     tab.castShadow = true;
     front.add(tab);
+
+    // Tab label — short abbreviated name
+    const shortLabel = charData.name.split(' ')[0].slice(0, 10);
+    const labelCanvas = document.createElement('canvas');
+    labelCanvas.width = 256; labelCanvas.height = 96;
+    const lctx = labelCanvas.getContext('2d');
+    lctx.fillStyle = '#c9b791';
+    lctx.fillRect(0, 0, 256, 96);
+    lctx.fillStyle = '#221100';
+    lctx.font = 'bold 40px "Special Elite", monospace';
+    lctx.textAlign = 'center';
+    lctx.textBaseline = 'middle';
+    lctx.fillText(shortLabel, 128, 48);
+    const labelTex = new THREE.CanvasTexture(labelCanvas);
+    labelTex.colorSpace = THREE.SRGBColorSpace;
+
+    const tabLabel = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.46, 0.14),
+        new THREE.MeshBasicMaterial({ map: labelTex })
+    );
+    tabLabel.position.set(0, 0, 0.016); // just above tab top face
+    tab.add(tabLabel);
 
     group.userData.frontGroup = frontGroup;
     group.userData.isOpen = false;
