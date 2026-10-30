@@ -23,7 +23,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.55;    // CHANGED: was 1.0 — halves overall brightness
+renderer.toneMappingExposure = 0.72;    // CHANGED: was 1.0 — halves overall brightness
 
 // ==========================================
 // 2. LIGHTING
