@@ -23,12 +23,11 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
+renderer.toneMappingExposure = 0.55;    // CHANGED: was 1.0 — halves overall brightness
 
 // ==========================================
 // 2. LIGHTING
 // ==========================================
-// Lamp above the binder box, pointing straight down
 const LAMP_POS = new THREE.Vector3(0, 3, -1);
 
 const lampLight = new THREE.SpotLight(0xffcc88, 0);
@@ -37,13 +36,16 @@ lampLight.angle = Math.PI / 3;
 lampLight.penumbra = 0.8;
 lampLight.castShadow = true;
 lampLight.distance = 12;
-lampLight.decay = 1.7;
+lampLight.decay = 2.2;                  // CHANGED: was 2.0 — sharper falloff
 scene.add(lampLight);
 
 const lampTarget = new THREE.Object3D();
 lampTarget.position.set(0, 0, -1);
 scene.add(lampTarget);
 lampLight.target = lampTarget;
+
+// HDR bulb color for bloom (bright enough to bloom at threshold 1.2, but tiny)
+const HDR_BULB = new THREE.Color().setRGB(3, 2.4, 1.4, THREE.LinearSRGBColorSpace);
 
 const bulb = new THREE.Mesh(
     new THREE.SphereGeometry(0.1),
@@ -53,7 +55,7 @@ bulb.position.copy(LAMP_POS);
 bulb.scale.setScalar(1.4);
 scene.add(bulb);
 
-scene.add(new THREE.AmbientLight(0x221100, 0.1));
+scene.add(new THREE.AmbientLight(0x110800, 0.08));  // CHANGED: was 0x221100, 0.1
 
 const rimCool = new THREE.DirectionalLight(0x88aaff, 0.35);
 rimCool.position.set(-4, 1.5, -5);
@@ -63,8 +65,7 @@ const rimWarm = new THREE.DirectionalLight(0xff9955, 0.28);
 rimWarm.position.set(4, 2, -4);
 scene.add(rimWarm);
 
-// Front fill — illuminates binder SPINES which face +Z (toward camera)
-const frontFill = new THREE.DirectionalLight(0xffd5a0, 0.2);
+const frontFill = new THREE.DirectionalLight(0xffd5a0, 0.12);  // CHANGED: was 0.15
 frontFill.position.set(0, 2.5, 5);
 scene.add(frontFill);
 
@@ -138,7 +139,8 @@ scene.add(leftEye, rightEye);
 // 3b. VOLUMETRIC LAMP CONE
 // ==========================================
 const coneHeight = LAMP_POS.distanceTo(lampTarget.position);
-const coneGeo = new THREE.CylinderGeometry(0.45, 1.85, coneHeight, 32, 1, true);
+// CHANGED: much narrower (0.35, 1.1 instead of 0.45, 1.85) so it hugs the box
+const coneGeo = new THREE.CylinderGeometry(0.35, 1.1, coneHeight, 32, 1, true);
 
 const coneMat = new THREE.ShaderMaterial({
     uniforms: {
@@ -177,7 +179,7 @@ const coneMat = new THREE.ShaderMaterial({
     transparent: true,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
-    side: THREE.DoubleSide,
+    side: THREE.FrontSide,                // CHANGED: was DoubleSide — halves the cone's brightness
     fog: false
 });
 
@@ -229,7 +231,7 @@ const dust = (() => {
         map: dustTex,
         color: 0xffd7a0,
         transparent: true,
-        opacity: 0.55,
+        opacity: 0.7,                    // CHANGED: was 0.55 — compensate for exposure drop
         depthWrite: false,
         blending: THREE.AdditiveBlending,
         sizeAttenuation: true,
@@ -261,9 +263,10 @@ function updateDust(t) {
 // ==========================================
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
+// CHANGED: strength 1.5 → 0.35, threshold 0.85 → 1.2, radius 0.4 → 0.3
 composer.addPass(new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-    1.5, 0.4, 0.85
+    0.35, 0.3, 1.2
 ));
 
 const GrainVignetteShader = {
@@ -367,7 +370,6 @@ const PRESENT_POS = new THREE.Vector3(0.2, 1.0, 0.5);
 const PRESENT_ROT_Y = 0;
 const SHELF_ROT_Y   = Math.PI / 2;
 
-// ---- Texture generators ----
 function createSpineTexture(name) {
     const c = document.createElement('canvas');
     c.width = 96; c.height = 512;
@@ -478,7 +480,6 @@ function createCoverTexture(name) {
     return tex;
 }
 
-// ---- Binder builder ----
 function createBinder(charData, x, y, z) {
     const group = new THREE.Group();
     group.position.set(x, y, z);
@@ -488,10 +489,9 @@ function createBinder(charData, x, y, z) {
     group.userData.isOpen = false;
     group.userData.pullOut = 0;
 
-    // Pages (cream stack, slightly inset) — clickable
     const pages = new THREE.Mesh(
         new RoundedBoxGeometry(BINDER_WIDTH - 0.06, BINDER_HEIGHT - 0.06, 0.08, 3, 0.005),
-        new THREE.MeshStandardMaterial({ color: 0xf0e8d0, roughness: 0.92 })
+        new THREE.MeshStandardMaterial({ color: 0xd4cbb0, roughness: 0.92 }) // CHANGED: was 0xf0e8d0 — less reflective cream
     );
     pages.castShadow = true;
     pages.receiveShadow = true;
@@ -499,7 +499,6 @@ function createBinder(charData, x, y, z) {
     pages.userData.parentGroup = group;
     group.add(pages);
 
-    // Back cover
     const back = new THREE.Mesh(
         new RoundedBoxGeometry(BINDER_WIDTH, BINDER_HEIGHT, 0.02, 3, 0.006),
         new THREE.MeshStandardMaterial({ color: 0x8a6f4a, roughness: 0.85 })
@@ -509,7 +508,6 @@ function createBinder(charData, x, y, z) {
     back.receiveShadow = true;
     group.add(back);
 
-    // Spine — clickable
     const spine = new THREE.Mesh(
         new RoundedBoxGeometry(0.025, BINDER_HEIGHT, 0.12, 3, 0.006),
         new THREE.MeshStandardMaterial({ map: createSpineTexture(charData.name), roughness: 0.82 })
@@ -520,7 +518,6 @@ function createBinder(charData, x, y, z) {
     spine.userData.parentGroup = group;
     group.add(spine);
 
-    // Front cover (hinged at spine)
     const frontGroup = new THREE.Group();
     frontGroup.position.set(-BINDER_WIDTH / 2, 0, 0.055);
     group.add(frontGroup);
@@ -540,7 +537,6 @@ function createBinder(charData, x, y, z) {
     return group;
 }
 
-// ---- Binder box ----
 function createBinderBox(centerX, centerZ, boxWidth) {
     const boxGroup = new THREE.Group();
     boxGroup.position.set(centerX, BOX_BASE_Y, centerZ);
@@ -570,7 +566,6 @@ function createBinderBox(centerX, centerZ, boxWidth) {
     rightWall.position.x = boxWidth / 2 - 0.015;
     boxGroup.add(rightWall);
 
-    // Front wall is lower so binders stick out — the "document tray" silhouette
     const frontWall = new THREE.Mesh(new RoundedBoxGeometry(boxWidth, boxHeight * 0.55, 0.03, 3, 0.008), boxMat);
     frontWall.position.set(0, boxHeight * 0.275, boxDepth / 2 - 0.015);
     frontWall.castShadow = true;
@@ -585,7 +580,6 @@ function createBinderBox(centerX, centerZ, boxWidth) {
     return boxGroup;
 }
 
-// ---- Spawn (kept as window.spawn3DFolders for display-characters.js) ----
 window.spawn3DFolders = (charactersList) => {
     currentFolders.forEach(f => foldersGroup.remove(f));
     currentFolders = [];
@@ -614,7 +608,6 @@ window.spawn3DFolders = (charactersList) => {
     document.getElementById('switchSideBtn').style.display = 'block';
 };
 
-// ---- Close (reverse animation) ----
 window.closeActiveFolder = () => {
     if (!activeFolder) return;
     const binder = activeFolder;
@@ -662,7 +655,6 @@ function floatBackToShelf(binder) {
     animate();
 }
 
-// ---- Presentation animations ----
 function presentBinder(binder) {
     const startPos = binder.position.clone();
     const startRotY = binder.rotation.y;
@@ -812,9 +804,9 @@ setTimeout(() => {
     const flicker = setInterval(() => {
         if (flickers > 12) {
             clearInterval(flicker);
-            lampLight.intensity = 60;
-            bulb.material.color.setHex(0xffcc88);
-            coneMat.uniforms.uOpacity.value = 0.09;
+            lampLight.intensity = 2.0;                       // CHANGED: was 5
+            bulb.material.color.copy(HDR_BULB);              // CHANGED: HDR bulb
+            coneMat.uniforms.uOpacity.value = 0.025;         // CHANGED: was 0.09
 
             setTimeout(() => {
                 setCameraState('INTRO_DOWN');
@@ -827,9 +819,13 @@ setTimeout(() => {
             }, 500);
             return;
         }
-        lampLight.intensity = Math.random() > 0.4 ? 60 : 0;
-        bulb.material.color.setHex(lampLight.intensity > 0 ? 0xffcc88 : 0x000000);
-        coneMat.uniforms.uOpacity.value = lampLight.intensity > 0 ? 0.09 : 0.0;
+        lampLight.intensity = Math.random() > 0.4 ? 2.0 : 0; // CHANGED: was 5
+        if (lampLight.intensity > 0) {
+            bulb.material.color.copy(HDR_BULB);
+        } else {
+            bulb.material.color.setHex(0x000000);
+        }
+        coneMat.uniforms.uOpacity.value = lampLight.intensity > 0 ? 0.025 : 0.0; // CHANGED: was 0.09
         flickers++;
     }, 100);
 }, 500);
