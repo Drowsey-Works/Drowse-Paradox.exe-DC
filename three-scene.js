@@ -36,6 +36,8 @@ lampLight.position.copy(LAMP_POS);
 lampLight.angle = Math.PI / 3;
 lampLight.penumbra = 0.8;
 lampLight.castShadow = true;
+lampLight.distance = 12;
+lampLight.decay = 1.7;
 scene.add(lampLight);
 
 const lampTarget = new THREE.Object3D();
@@ -62,7 +64,7 @@ rimWarm.position.set(4, 2, -4);
 scene.add(rimWarm);
 
 // Front fill — illuminates binder SPINES which face +Z (toward camera)
-const frontFill = new THREE.DirectionalLight(0xffd5a0, 0.5);
+const frontFill = new THREE.DirectionalLight(0xffd5a0, 0.2);
 frontFill.position.set(0, 2.5, 5);
 scene.add(frontFill);
 
@@ -350,16 +352,16 @@ function setCameraState(stateName) {
 // ==========================================
 const foldersGroup = new THREE.Group();
 scene.add(foldersGroup);
-let currentFolders = [];       // binder groups (kept as 'currentFolders' so raycaster works unchanged)
+let currentFolders = [];
 let currentBox = null;
-let activeFolder = null;       // binder currently being presented / open
+let activeFolder = null;
 let hoveredBinder = null;
 
 const BINDER_THICKNESS = 0.12;
 const BINDER_HEIGHT    = 1.0;
 const BINDER_WIDTH     = 0.85;
 const BOX_BASE_Y       = 0.0;
-const BINDER_BASE_Y    = 0.03 + BINDER_HEIGHT / 2;   // bottom of binder above box floor
+const BINDER_BASE_Y    = 0.03 + BINDER_HEIGHT / 2;
 
 const PRESENT_POS = new THREE.Vector3(0.2, 1.0, 0.5);
 const PRESENT_ROT_Y = 0;
@@ -371,20 +373,17 @@ function createSpineTexture(name) {
     c.width = 96; c.height = 512;
     const ctx = c.getContext('2d');
 
-    // Leather spine base
     ctx.fillStyle = '#3a2518';
     ctx.fillRect(0, 0, 96, 512);
     for (let i = 0; i < 260; i++) {
         ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.18})`;
         ctx.fillRect(Math.random() * 96, 0, 1, 512);
     }
-    // Gold border
     ctx.strokeStyle = 'rgba(200, 170, 100, 0.65)';
     ctx.lineWidth = 2;
     ctx.strokeRect(6, 6, 84, 500);
     ctx.strokeRect(10, 10, 76, 492);
 
-    // Vertical name
     ctx.save();
     ctx.translate(48, 256);
     ctx.rotate(-Math.PI / 2);
@@ -422,14 +421,12 @@ function createCoverTexture(name) {
     }
     ctx.putImageData(img, 0, 0);
 
-    // Paper label
     ctx.fillStyle = '#f0e8d0';
     ctx.fillRect(60, 100, 392, 400);
     ctx.strokeStyle = 'rgba(80, 50, 20, 0.5)';
     ctx.lineWidth = 2;
     ctx.strokeRect(60, 100, 392, 400);
 
-    // Name (wrapped, auto-scaled)
     ctx.fillStyle = '#1a1008';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -464,7 +461,6 @@ function createCoverTexture(name) {
         ctx.fillText(line, 256, startY + i * lineHeight);
     });
 
-    // TOP SECRET stamp
     ctx.save();
     ctx.translate(256, 545);
     ctx.rotate(-0.08);
@@ -492,13 +488,15 @@ function createBinder(charData, x, y, z) {
     group.userData.isOpen = false;
     group.userData.pullOut = 0;
 
-    // Pages (cream stack, slightly inset)
+    // Pages (cream stack, slightly inset) — clickable
     const pages = new THREE.Mesh(
         new RoundedBoxGeometry(BINDER_WIDTH - 0.06, BINDER_HEIGHT - 0.06, 0.08, 3, 0.005),
         new THREE.MeshStandardMaterial({ color: 0xf0e8d0, roughness: 0.92 })
     );
     pages.castShadow = true;
     pages.receiveShadow = true;
+    pages.userData.isFolderFront = true;
+    pages.userData.parentGroup = group;
     group.add(pages);
 
     // Back cover
@@ -511,13 +509,15 @@ function createBinder(charData, x, y, z) {
     back.receiveShadow = true;
     group.add(back);
 
-    // Spine
+    // Spine — clickable
     const spine = new THREE.Mesh(
         new RoundedBoxGeometry(0.025, BINDER_HEIGHT, 0.12, 3, 0.006),
         new THREE.MeshStandardMaterial({ map: createSpineTexture(charData.name), roughness: 0.82 })
     );
     spine.position.set(-BINDER_WIDTH / 2 + 0.0125, 0, 0);
     spine.castShadow = true;
+    spine.userData.isFolderFront = true;
+    spine.userData.parentGroup = group;
     group.add(spine);
 
     // Front cover (hinged at spine)
@@ -547,9 +547,9 @@ function createBinderBox(centerX, centerZ, boxWidth) {
     boxGroup.raycast = () => {};
 
     const boxMat = new THREE.MeshStandardMaterial({
-        color: 0x2a1a0c,
-        roughness: 0.75,
-        metalness: 0.05
+        color: 0x140a04,
+        roughness: 0.85,
+        metalness: 0.03
     });
 
     const boxHeight = 0.3;
@@ -812,7 +812,7 @@ setTimeout(() => {
     const flicker = setInterval(() => {
         if (flickers > 12) {
             clearInterval(flicker);
-            lampLight.intensity = 100;
+            lampLight.intensity = 60;
             bulb.material.color.setHex(0xffcc88);
             coneMat.uniforms.uOpacity.value = 0.09;
 
@@ -827,7 +827,7 @@ setTimeout(() => {
             }, 500);
             return;
         }
-        lampLight.intensity = Math.random() > 0.4 ? 100 : 0;
+        lampLight.intensity = Math.random() > 0.4 ? 60 : 0;
         bulb.material.color.setHex(lampLight.intensity > 0 ? 0xffcc88 : 0x000000);
         coneMat.uniforms.uOpacity.value = lampLight.intensity > 0 ? 0.09 : 0.0;
         flickers++;
