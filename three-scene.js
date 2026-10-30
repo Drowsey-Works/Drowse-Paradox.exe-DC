@@ -65,7 +65,7 @@ const rimWarm = new THREE.DirectionalLight(0xff9955, 0.28);
 rimWarm.position.set(4, 2, -4);
 scene.add(rimWarm);
 
-const frontFill = new THREE.DirectionalLight(0xffd5a0, 0.12);  // CHANGED: was 0.15
+const frontFill = new THREE.DirectionalLight(0xffd5a0, 0.18);  // CHANGED: was 0.15
 frontFill.position.set(0, 2.5, 5);
 scene.add(frontFill);
 
@@ -804,7 +804,7 @@ setTimeout(() => {
     const flicker = setInterval(() => {
         if (flickers > 12) {
             clearInterval(flicker);
-            lampLight.intensity = 2.0;                       // CHANGED: was 5
+            lampLight.intensity = 3.0;                       // CHANGED: was 5
             bulb.material.color.copy(HDR_BULB);              // CHANGED: HDR bulb
             coneMat.uniforms.uOpacity.value = 0.025;         // CHANGED: was 0.09
 
@@ -819,7 +819,7 @@ setTimeout(() => {
             }, 500);
             return;
         }
-        lampLight.intensity = Math.random() > 0.4 ? 2.0 : 0; // CHANGED: was 5
+        lampLight.intensity = Math.random() > 0.4 ? 3.0 : 0; // CHANGED: was 5
         if (lampLight.intensity > 0) {
             bulb.material.color.copy(HDR_BULB);
         } else {
